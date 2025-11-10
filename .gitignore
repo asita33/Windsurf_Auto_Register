@@ -1,0 +1,30 @@
+node_modules/
+.env
+.env.local
+.vercel
+*.log
+.DS_Store
+backend/accounts.json
+backend/activation-codes.json
+
+# 排除文档文件（保留重要的 README）
+/*.md
+!README.md
+/*.txt
+/*.bat
+/*.ps1
+/*.sh
+
+# 排除临时和测试文件
+scripts/
+测试*.md
+调试*.md
+清理*.md
+修复*.md
+部署*.md
+优化*.md
+问题*.md
+紧急*.md
+完整*.md
+最终*.md
+快速*.md

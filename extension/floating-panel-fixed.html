@@ -1,0 +1,38 @@
+<!-- floating-panel-fixed.html 在原来文件基础上添加到 清除数据按钮后面 -->
+
+        <!-- 动态码激活区域 -->
+        <div id="activation-section" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 2px dashed #ffc107;">
+            <div style="font-size: 14px; font-weight: 600; color: #856404; margin-bottom: 10px; text-align: center;">
+                🔒 需要激活码
+            </div>
+            <div style="font-size: 12px; color: #856404; margin-bottom: 10px; text-align: center;">
+                首次使用免费，第二次使用需要输入动态码
+            </div>
+            <input type="text" id="activation-code-input" placeholder="请输入动态码" 
+                style="width: 100%; padding: 10px; border: 2px solid #ffc107; border-radius: 6px; font-size: 14px; margin-bottom: 10px; box-sizing: border-box;">
+            <button id="verify-code-btn" style="
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                background: #28a745;
+                color: white;
+                transition: transform 0.2s;
+            ">✅ 验证激活码</button>
+            
+            <!-- 打赏支持 -->
+            <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px; text-align: center;">
+                <div style="font-size: 13px; color: #dc3545; font-weight: 600; margin-bottom: 10px;">
+                    💝 创作不易，请随心打赏作者留言获取动态码
+                </div>
+                <div id="donation-qr-container" style="margin: 10px auto; max-width: 200px; min-height: 200px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 2px dashed #dee2e6;">
+                    <span style="color: #6c757d; font-size: 12px;">加载中...</span>
+                </div>
+                <div style="font-size: 11px; color: #6c757d; margin-top: 8px;">
+                    扫码打赏后留言获取动态码
+                </div>
+            </div>
+        </div>

@@ -1,11 +1,15 @@
 node_modules/
 .env
 .env.local
+.env.production
 .vercel
 *.log
 .DS_Store
 backend/accounts.json
 backend/activation-codes.json
+**/API_DOCS.md
+**/API_*.md
+**/*_SECRET*.md
 
 # 排除文档文件（保留重要的 README）
 /*.md

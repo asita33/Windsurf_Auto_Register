@@ -1,0 +1,366 @@
+<div id="windsurf-floating-panel" style="
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 380px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1);
+    z-index: 2147483647;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+">
+    <!-- 顶部渐变条 -->
+    <div style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 6px;
+    "></div>
+    
+    <!-- 标题栏 -->
+    <div id="panel-header" style="
+        padding: 20px 20px 16px;
+        cursor: move;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        border-bottom: 1px solid #f0f0f0;
+    ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            ">🚀</div>
+            <div>
+                <div style="font-weight: 700; font-size: 16px; color: #1f2937;">Windsurf 助手</div>
+                <div id="status-text" style="font-size: 12px; color: #6b7280; margin-top: 2px;">准备就绪</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button id="minimize-btn" style="
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: #f3f4f6;
+                border-radius: 8px;
+                cursor: pointer;
+                color: #6b7280;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            ">−</button>
+            <button id="close-btn" style="
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: #f3f4f6;
+                border-radius: 8px;
+                cursor: pointer;
+                color: #6b7280;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            ">×</button>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div id="panel-content" style="
+        padding: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+    ">
+        <!-- 邮箱显示 -->
+        <div id="email-section" style="display: none; margin-bottom: 16px;">
+            <div style="
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                border: 2px solid #bae6fd;
+                border-radius: 12px;
+                padding: 16px;
+            ">
+                <div style="font-size: 13px; font-weight: 600; color: #0369a1; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>📧</span>
+                    <span>临时邮箱</span>
+                    <span style="color: #10b981; font-size: 11px; background: #d1fae5; padding: 2px 8px; border-radius: 4px;">✓ 已保存</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input readonly id="email-text" style="
+                        flex: 1;
+                        font-family: 'Courier New', monospace;
+                        font-size: 13px;
+                        color: #1f2937;
+                        background: white;
+                        border: 1px solid #bae6fd;
+                        padding: 10px 12px;
+                        border-radius: 8px;
+                    ">
+                    <button id="copy-email-btn" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        padding: 10px 16px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        transition: transform 0.2s;
+                    ">复制</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 密码显示 -->
+        <div id="password-section" style="display: none; margin-bottom: 16px;">
+            <div style="
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border: 2px solid #fcd34d;
+                border-radius: 12px;
+                padding: 16px;
+            ">
+                <div style="font-size: 13px; font-weight: 600; color: #92400e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>🔒</span>
+                    <span>生成的密码</span>
+                    <span style="color: #10b981; font-size: 11px; background: #d1fae5; padding: 2px 8px; border-radius: 4px;">✓ 已保存</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input readonly id="password-text" style="
+                        flex: 1;
+                        font-family: 'Courier New', monospace;
+                        font-size: 13px;
+                        color: #1f2937;
+                        background: white;
+                        border: 1px solid #fcd34d;
+                        padding: 10px 12px;
+                        border-radius: 8px;
+                    ">
+                    <button id="copy-password-btn" style="
+                        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                        color: white;
+                        border: none;
+                        padding: 10px 16px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        transition: transform 0.2s;
+                    ">复制</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按钮组 -->
+        <button id="start-register-btn" style="
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+        ">✨ 开始自动注册</button>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <button id="check-code-btn" style="
+                padding: 12px;
+                border: 2px solid #e5e7eb;
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                background: white;
+                color: #6b7280;
+                display: none;
+                transition: all 0.2s;
+            ">🔍 检查验证码</button>
+            
+            <button id="clear-data-btn" style="
+                padding: 12px;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+                transition: all 0.3s;
+            ">🗑️ 清除数据</button>
+        </div>
+
+        <!-- 动态码激活区域 -->
+        <div id="activation-section" style="display: none; margin-top: 16px;">
+            <div style="
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border: 2px solid #fbbf24;
+                border-radius: 12px;
+                padding: 20px;
+            ">
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🔐</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #92400e; margin-bottom: 4px;">
+                        需要激活码
+                    </div>
+                </div>
+                
+                <input type="text" id="activation-code-input" placeholder="请输入动态码" 
+                    style="
+                        width: 100%;
+                        padding: 14px;
+                        border: 2px solid #fbbf24;
+                        border-radius: 10px;
+                        font-size: 14px;
+                        margin-bottom: 12px;
+                        box-sizing: border-box;
+                        text-align: center;
+                        font-weight: 600;
+                        letter-spacing: 2px;
+                    ">
+                
+                <button id="verify-code-btn" style="
+                    width: 100%;
+                    padding: 14px;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 14px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                    transition: all 0.3s;
+                ">✅ 验证激活码</button>
+                
+                <!-- 打赏支持 -->
+                <div style="margin-top: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 15px; color: #dc2626; font-weight: 700; margin-bottom: 8px;">
+                            💝 创作不易，随心打赏
+                        </div>
+                        <div style="font-size: 12px; color: #6b7280;">
+                            打赏后留言获取动态码
+                        </div>
+                    </div>
+                    
+                    <div id="donation-qr-container" style="
+                        margin: 0 auto;
+                        max-width: 220px;
+                        min-height: 220px;
+                        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 2px dashed #d1d5db;
+                        overflow: hidden;
+                    ">
+                        <span style="color: #9ca3af; font-size: 13px;">加载中...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志区域 -->
+        <div id="logs-container" style="
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 16px;
+            display: none;
+        "></div>
+    </div>
+</div>
+
+<style>
+#windsurf-floating-panel.minimized {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+}
+
+#windsurf-floating-panel.minimized #panel-content,
+#windsurf-floating-panel.minimized #panel-header > div:last-child,
+#windsurf-floating-panel.minimized .gradient-bar {
+    display: none !important;
+}
+
+#windsurf-floating-panel.minimized #panel-header {
+    padding: 0 !important;
+    height: 80px !important;
+    border: none !important;
+    border-radius: 50% !important;
+    justify-content: center !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+#windsurf-floating-panel.minimized #panel-header > div:first-child {
+    flex-direction: column;
+    text-align: center;
+}
+
+#windsurf-floating-panel.minimized #panel-header > div:first-child > div:first-child {
+    background: rgba(255,255,255,0.2) !important;
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 24px !important;
+}
+
+#windsurf-floating-panel.minimized #panel-header > div:first-child > div:last-child {
+    display: none !important;
+}
+
+#minimize-btn:hover, #close-btn:hover {
+    background: #e5e7eb !important;
+    transform: scale(1.1);
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#panel-content::-webkit-scrollbar,
+#logs-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#panel-content::-webkit-scrollbar-track,
+#logs-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#panel-content::-webkit-scrollbar-thumb,
+#logs-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+#panel-content::-webkit-scrollbar-thumb:hover,
+#logs-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+</style>

@@ -1438,13 +1438,17 @@
             if (!confirm(`确定要删除邮箱 ${email} 吗？`)) return;
             
             try {
-                const response = await fetch(`/api/emails/${encodeURIComponent(email)}`, {
+                const response = await apiFetch(`/api/delete-email/${encodeURIComponent(email)}`, {
                     method: 'DELETE'
                 });
                 
-                if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success) {
                     refreshEmails();
                     alert('✅ 删除成功！');
+                } else {
+                    alert('❌ 删除失败：' + (data.error || '未知错误'));
                 }
             } catch (error) {
                 alert('❌ 删除失败：' + error.message);

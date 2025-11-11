@@ -890,6 +890,15 @@
         let accounts = [];
         let activationCodes = [];
         
+        // 分页配置
+        const ITEMS_PER_PAGE = 20;
+        let currentAccountPage = 1;
+        let currentCodePage = 1;
+        let filteredAccounts = [];
+        let filteredCodes = [];
+        let selectedAccounts = new Set();
+        let selectedCodes = new Set();
+        
         // 标签页切换
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -1033,42 +1042,96 @@
             }
         }
         
-        // 渲染账号列表
+        // 渲染账号列表（带分页）
         function renderAccounts() {
             const container = document.getElementById('accountsList');
             
-            if (accounts.length === 0) {
+            // 使用过滤后的数据
+            const dataToShow = filteredAccounts.length > 0 || document.getElementById('accountSearch')?.value 
+                ? filteredAccounts : accounts;
+            
+            if (dataToShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📭</div>
-                        <div class="empty-state-title">还没有注册的账号</div>
+                        <div class="empty-state-title">没有找到账号</div>
                         <p>使用扩展注册账号后会显示在这里</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = accounts.map(account => `
-                <div class="account-card">
-                    <div class="account-email">
-                        📧 ${account.email}
-                    </div>
-                    <div class="account-password">
-                        🔒 ${account.password}
-                    </div>
-                    <div class="account-meta">
-                        <span class="account-time">
-                            📅 ${new Date(account.createdAt).toLocaleString('zh-CN')}
-                        </span>
-                        <div class="account-actions">
-                            <button class="btn btn-copy" onclick="copyText('${account.email}', '邮箱')">复制邮箱</button>
-                            <button class="btn btn-copy" onclick="copyText('${account.password}', '密码')">复制密码</button>
-                            <button class="btn btn-primary" onclick="viewInbox('${account.email}')">📬 查看收件箱</button>
-                            <button class="btn btn-danger" onclick="deleteAccount('${account.email}')">删除</button>
-                        </div>
-                    </div>
+            // 分页计算
+            const start = (currentAccountPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageAccounts = dataToShow.slice(start, end);
+            const totalPages = Math.ceil(dataToShow.length / ITEMS_PER_PAGE);
+            
+            container.innerHTML = `
+                <!-- 工具栏 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="checkbox" id="selectAllAccounts" onchange="toggleSelectAllAccounts()" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="selectAllAccounts" style="cursor: pointer;">全选当前页</label>
+                    <button class="btn btn-danger" onclick="batchDeleteAccounts()" id="batchDelAccountsBtn" disabled style="padding: 8px 16px;">
+                        🗑️ 删除选中 (<span id="selectedAccountCount">0</span>)
+                    </button>
+                    <input type="text" id="accountSearch" placeholder="🔍 搜索邮箱或密码..." 
+                        style="flex: 1; max-width: 300px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px;" 
+                        onkeyup="searchAccounts()">
+                    <button class="btn btn-primary" onclick="exportAccounts()" style="padding: 8px 16px;">📥 导出CSV</button>
                 </div>
-            `).join('');
+                
+                <!-- 账号列表 -->
+                ${pageAccounts.map(account => {
+                    const email = (account.email || '').replace(/'/g, "\\'");
+                    const checked = selectedAccounts.has(account.email) ? 'checked' : '';
+                    return `
+                        <div class="account-card" style="display: flex; gap: 16px; align-items: flex-start;">
+                            <input type="checkbox" class="account-checkbox" value="${email}" ${checked} 
+                                onchange="toggleAccountSelection('${email}')" 
+                                style="width: 18px; height: 18px; cursor: pointer; margin-top: 12px;">
+                            <div style="flex: 1;">
+                                <div class="account-email">
+                                    📧 ${account.email}
+                                </div>
+                                <div class="account-password">
+                                    🔒 ${account.password}
+                                </div>
+                                <div class="account-meta">
+                                    <span class="account-time">
+                                        📅 ${new Date(account.createdAt).toLocaleString('zh-CN')}
+                                    </span>
+                                    <div class="account-actions">
+                                        <button class="btn btn-copy" onclick="copyText('${email}', '邮箱')">复制邮箱</button>
+                                        <button class="btn btn-copy" onclick="copyText('${account.password}', '密码')">复制密码</button>
+                                        <button class="btn btn-primary" onclick="viewInbox('${email}')">📬 查看收件箱</button>
+                                        <button class="btn btn-danger" onclick="deleteAccount('${email}')">删除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                
+                <!-- 分页控件 -->
+                ${totalPages > 1 ? `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; padding: 20px;">
+                        <button onclick="changeAccountPage(1)" ${currentAccountPage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">首页</button>
+                        <button onclick="changeAccountPage(${currentAccountPage - 1})" ${currentAccountPage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">上一页</button>
+                        <span style="padding: 8px 16px; background: #f3f4f6; border-radius: 8px; font-weight: 600;">
+                            第 ${currentAccountPage} / ${totalPages} 页 (共 ${dataToShow.length} 条)
+                        </span>
+                        <button onclick="changeAccountPage(${currentAccountPage + 1})" ${currentAccountPage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">下一页</button>
+                        <button onclick="changeAccountPage(${totalPages})" ${currentAccountPage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">末页</button>
+                    </div>
+                ` : ''}
+            `;
+            
+            updateSelectedAccountsDisplay();
         }
         
         // 加载邮箱列表
@@ -1412,127 +1475,258 @@
             return code;
         }
         
-        // 渲染动态码列表
+        // 渲染动态码列表（带分页）
         function renderCodes() {
             const container = document.getElementById('codesList');
             const now = new Date();
             
+            // 使用过滤后的数据
+            const dataToShow = filteredCodes.length > 0 || document.getElementById('codeSearch')?.value || document.getElementById('codeStatusFilter')?.value !== 'all'
+                ? filteredCodes : activationCodes;
+            
             // 统计可用码（未过期且未用完）
-            const availableCount = activationCodes.filter(c => {
+            const availableCount = dataToShow.filter(c => {
                 const isExpired = c.expiresAt && new Date(c.expiresAt) < now;
                 const isUsedUp = c.maxUses > 0 && c.usedCount >= c.maxUses;
                 return !isExpired && !isUsedUp;
             }).length;
             
             document.getElementById('availableCodesCount').textContent = 
-                `可用: ${availableCount} / ${activationCodes.length}`;
+                `可用: ${availableCount} / ${dataToShow.length}`;
             
-            if (activationCodes.length === 0) {
+            if (dataToShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🔑</div>
-                        <div class="empty-state-title">还没有动态码</div>
+                        <div class="empty-state-title">没有找到动态码</div>
                         <p>点击上方按钮生成动态码</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = activationCodes.map(code => {
-                // 兼容旧数据：初始化缺失字段
-                if (!code.expiresAt) {
-                    code.expiresAt = null;
-                }
-                if (code.maxUses === undefined) {
-                    code.maxUses = 1;
-                }
-                if (code.usedCount === undefined) {
-                    code.usedCount = code.used ? 1 : 0;
-                }
-                if (!Array.isArray(code.usedBy)) {
-                    code.usedBy = code.usedBy ? [code.usedBy] : [];
-                }
+            // 分页计算
+            const start = (currentCodePage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageCodes = dataToShow.slice(start, end);
+            const totalPages = Math.ceil(dataToShow.length / ITEMS_PER_PAGE);
+            
+            container.innerHTML = `
+                <!-- 工具栏 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="checkbox" id="selectAllCodes" onchange="toggleSelectAllCodes()" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="selectAllCodes" style="cursor: pointer;">全选当前页</label>
+                    <button class="btn btn-danger" onclick="batchDeleteCodes()" id="batchDelCodesBtn" disabled style="padding: 8px 16px;">
+                        🗑️ 删除选中 (<span id="selectedCodeCount">0</span>)
+                    </button>
+                    <input type="text" id="codeSearch" placeholder="🔍 搜索动态码..." 
+                        style="flex: 1; max-width: 300px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px;" 
+                        onkeyup="searchCodes()">
+                    <select id="codeStatusFilter" onchange="filterCodesByStatus()" 
+                        style="padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;">
+                        <option value="all">全部状态</option>
+                        <option value="available">可用</option>
+                        <option value="used">已用完</option>
+                        <option value="expired">已过期</option>
+                    </select>
+                </div>
                 
-                const isExpired = code.expiresAt && new Date(code.expiresAt) < now;
-                const isUsedUp = code.maxUses > 0 && code.usedCount >= code.maxUses;
-                const isAvailable = !isExpired && !isUsedUp;
-                
-                let statusText = '可用';
-                let statusClass = 'available';
-                let statusColor = '#10b981'; // 绿色
-                let statusBg = '#d1fae5'; // 浅绿背景
-                let statusTextColor = '#065f46'; // 深绿文字
-                
-                if (isExpired) {
-                    statusText = '已过期';
-                    statusClass = 'expired';
-                    statusColor = '#9ca3af'; // 灰色
-                    statusBg = '#f3f4f6';
-                    statusTextColor = '#4b5563';
-                } else if (isUsedUp) {
-                    statusText = '已用完';
-                    statusClass = 'used';
-                    statusColor = '#f59e0b'; // 橙色
-                    statusBg = '#fef3c7';
-                    statusTextColor = '#92400e';
-                } else if (code.usedCount > 0) {
-                    statusText = '使用中';
-                    statusClass = 'in-use';
-                    statusColor = '#3b82f6'; // 蓝色
-                    statusBg = '#dbeafe';
-                    statusTextColor = '#1e40af';
-                }
-                
-                // 安全计算剩余天数
-                let daysLeft = 0;
-                let daysLeftText = '永久有效';
-                if (code.expiresAt) {
-                    const expireDate = new Date(code.expiresAt);
-                    daysLeft = Math.ceil((expireDate - now) / (1000 * 60 * 60 * 24));
-                    daysLeftText = daysLeft > 0 ? daysLeft + '天后' : '已过期';
-                }
-                
-                return `
-                    <div class="code-card ${!isAvailable ? 'used' : ''}" style="border-left: 4px solid ${statusColor};">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                            <div class="code-value" style="flex: 1;">${code.code}</div>
-                            <span class="code-status ${statusClass}" style="background: ${statusBg}; color: ${statusTextColor};">
-                                ${statusText}
-                            </span>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
-                            <div>📅 有效期: ${daysLeftText}</div>
-                            <div>🔢 使用次数: ${code.usedCount}/${code.maxUses === 0 ? '∞' : code.maxUses}</div>
-                            <div>📆 创建: ${new Date(code.createdAt).toLocaleDateString('zh-CN')}</div>
-                            ${code.usedAt ? `<div>⏰ 最后使用: ${new Date(code.usedAt).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})}</div>` : '<div></div>'}
-                        </div>
-                        
-                        ${code.usedBy && code.usedBy.length > 0 ? `
-                            <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">
-                                👥 使用者: ${code.usedBy.slice(-3).join(', ')}${code.usedBy.length > 3 ? ` +${code.usedBy.length - 3}` : ''}
+                <!-- 动态码列表 -->
+                ${pageCodes.map(code => {
+                    // 兼容旧数据
+                    if (!code.expiresAt) code.expiresAt = null;
+                    if (code.maxUses === undefined) code.maxUses = 1;
+                    if (code.usedCount === undefined) code.usedCount = code.used ? 1 : 0;
+                    if (!Array.isArray(code.usedBy)) code.usedBy = code.usedBy ? [code.usedBy] : [];
+                    
+                    const isExpired = code.expiresAt && new Date(code.expiresAt) < now;
+                    const isUsedUp = code.maxUses > 0 && code.usedCount >= code.maxUses;
+                    const isAvailable = !isExpired && !isUsedUp;
+                    const checked = selectedCodes.has(code.code) ? 'checked' : '';
+                    
+                    let statusText = '可用', statusColor = '#10b981', statusBg = '#d1fae5', statusTextColor = '#065f46';
+                    if (isExpired) {
+                        statusText = '已过期';
+                        statusColor = '#9ca3af';
+                        statusBg = '#f3f4f6';
+                        statusTextColor = '#4b5563';
+                    } else if (isUsedUp) {
+                        statusText = '已用完';
+                        statusColor = '#f59e0b';
+                        statusBg = '#fef3c7';
+                        statusTextColor = '#92400e';
+                    } else if (code.usedCount > 0) {
+                        statusText = '使用中';
+                        statusColor = '#3b82f6';
+                        statusBg = '#dbeafe';
+                        statusTextColor = '#1e40af';
+                    }
+                    
+                    let daysLeftText = '永久有效';
+                    if (code.expiresAt) {
+                        const daysLeft = Math.ceil((new Date(code.expiresAt) - now) / (1000 * 60 * 60 * 24));
+                        daysLeftText = daysLeft > 0 ? daysLeft + '天后' : '已过期';
+                    }
+                    
+                    return `
+                        <div class="code-card" style="border-left: 4px solid ${statusColor}; display: flex; gap: 16px; align-items: flex-start;">
+                            <input type="checkbox" class="code-checkbox" value="${code.code}" ${checked} 
+                                onchange="toggleCodeSelection('${code.code}')" 
+                                style="width: 18px; height: 18px; cursor: pointer; margin-top: 12px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div class="code-value" style="flex: 1;">${code.code}</div>
+                                    <span class="code-status" style="background: ${statusBg}; color: ${statusTextColor}; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                    <div>📅 有效期: ${daysLeftText}</div>
+                                    <div>🔢 使用次数: ${code.usedCount}/${code.maxUses === 0 ? '∞' : code.maxUses}</div>
+                                    <div>📆 创建: ${new Date(code.createdAt).toLocaleDateString('zh-CN')}</div>
+                                    ${code.usedAt ? `<div>⏰ 最后使用: ${new Date(code.usedAt).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})}</div>` : '<div></div>'}
+                                </div>
+                                ${code.usedBy && code.usedBy.length > 0 ? `
+                                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">
+                                        👥 使用者: ${code.usedBy.slice(-3).join(', ')}${code.usedBy.length > 3 ? ` +${code.usedBy.length - 3}` : ''}
+                                    </div>
+                                ` : ''}
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    ${isAvailable ? `
+                                        <button class="btn btn-copy btn-sm" onclick="copyText('${code.code}', '动态码')">📋 复制</button>
+                                    ` : ''}
+                                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${code.code}')">🗑️ 删除</button>
+                                </div>
                             </div>
-                        ` : ''}
-                        
-                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                            ${isAvailable ? `
-                                <button class="btn btn-copy btn-sm" onclick="copyText('${code.code}', '动态码')">📋 复制</button>
-                            ` : ''}
-                            <button class="btn btn-danger btn-sm" onclick="deleteCode('${code.code}')">🗑️ 删除</button>
                         </div>
+                    `;
+                }).join('')}
+                
+                <!-- 分页控件 -->
+                ${totalPages > 1 ? `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; padding: 20px;">
+                        <button onclick="changeCodePage(1)" ${currentCodePage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">首页</button>
+                        <button onclick="changeCodePage(${currentCodePage - 1})" ${currentCodePage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">上一页</button>
+                        <span style="padding: 8px 16px; background: #f3f4f6; border-radius: 8px; font-weight: 600;">
+                            第 ${currentCodePage} / ${totalPages} 页 (共 ${dataToShow.length} 条)
+                        </span>
+                        <button onclick="changeCodePage(${currentCodePage + 1})" ${currentCodePage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">下一页</button>
+                        <button onclick="changeCodePage(${totalPages})" ${currentCodePage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">末页</button>
                     </div>
-                `;
-            }).join('');
+                ` : ''}
+            `;
+            
+            updateSelectedCodesDisplay();
         }
         
         // 删除单个动态码
         async function deleteCode(code) {
             if (!confirm(`确定要删除动态码 ${code} 吗？`)) return;
             
+            selectedCodes.delete(code);
             activationCodes = activationCodes.filter(c => c.code !== code);
             await saveActivationCodesToServer();
             renderCodes();
             updateStats();
+        }
+        
+        // 动态码管理辅助函数
+        function changeCodePage(page) {
+            currentCodePage = page;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderCodes();
+        }
+        
+        function searchCodes() {
+            const keyword = document.getElementById('codeSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('codeStatusFilter').value;
+            
+            if (!keyword && statusFilter === 'all') {
+                filteredCodes = [];
+            } else {
+                const now = new Date();
+                filteredCodes = activationCodes.filter(code => {
+                    // 搜索过滤
+                    const matchesSearch = !keyword || code.code.toLowerCase().includes(keyword);
+                    
+                    // 状态过滤
+                    let matchesStatus = true;
+                    if (statusFilter !== 'all') {
+                        const isExpired = code.expiresAt && new Date(code.expiresAt) < now;
+                        const isUsedUp = code.maxUses > 0 && code.usedCount >= code.maxUses;
+                        const isAvailable = !isExpired && !isUsedUp;
+                        
+                        if (statusFilter === 'available') matchesStatus = isAvailable;
+                        else if (statusFilter === 'expired') matchesStatus = isExpired;
+                        else if (statusFilter === 'used') matchesStatus = isUsedUp;
+                    }
+                    
+                    return matchesSearch && matchesStatus;
+                });
+            }
+            currentCodePage = 1;
+            renderCodes();
+        }
+        
+        function filterCodesByStatus() {
+            searchCodes(); // 复用搜索逻辑
+        }
+        
+        function toggleSelectAllCodes() {
+            const checked = document.getElementById('selectAllCodes').checked;
+            document.querySelectorAll('.code-checkbox').forEach(cb => {
+                cb.checked = checked;
+                if (checked) {
+                    selectedCodes.add(cb.value);
+                } else {
+                    selectedCodes.delete(cb.value);
+                }
+            });
+            updateSelectedCodesDisplay();
+        }
+        
+        function toggleCodeSelection(code) {
+            if (selectedCodes.has(code)) {
+                selectedCodes.delete(code);
+            } else {
+                selectedCodes.add(code);
+            }
+            updateSelectedCodesDisplay();
+        }
+        
+        function updateSelectedCodesDisplay() {
+            const count = selectedCodes.size;
+            const countElem = document.getElementById('selectedCodeCount');
+            const btnElem = document.getElementById('batchDelCodesBtn');
+            if (countElem) countElem.textContent = count;
+            if (btnElem) btnElem.disabled = count === 0;
+        }
+        
+        async function batchDeleteCodes() {
+            if (selectedCodes.size === 0) return;
+            if (!confirm(`确定要删除选中的 ${selectedCodes.size} 个动态码吗？此操作不可恢复！`)) return;
+            
+            const deleteBtn = document.getElementById('batchDelCodesBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '删除中...';
+            }
+            
+            try {
+                activationCodes = activationCodes.filter(c => !selectedCodes.has(c.code));
+                await saveActivationCodesToServer();
+                
+                selectedCodes.clear();
+                renderCodes();
+                updateStats();
+                alert('✅ 批量删除成功！');
+            } catch (error) {
+                alert('❌ 批量删除失败：' + error.message);
+            }
         }
         
         // 清理过期动态码
@@ -1723,12 +1917,110 @@
                 });
                 
                 if (response.ok) {
-                    refreshAccounts();
+                    selectedAccounts.delete(email);
+                    await refreshAccounts();
                     alert('✅ 删除成功！');
                 }
             } catch (error) {
                 alert('❌ 删除失败：' + error.message);
             }
+        }
+        
+        // 账号管理辅助函数
+        function changeAccountPage(page) {
+            currentAccountPage = page;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderAccounts();
+        }
+        
+        function searchAccounts() {
+            const keyword = document.getElementById('accountSearch').value.toLowerCase();
+            if (!keyword) {
+                filteredAccounts = [];
+            } else {
+                filteredAccounts = accounts.filter(account =>
+                    (account.email || '').toLowerCase().includes(keyword) ||
+                    (account.password || '').toLowerCase().includes(keyword)
+                );
+            }
+            currentAccountPage = 1;
+            renderAccounts();
+        }
+        
+        function toggleSelectAllAccounts() {
+            const checked = document.getElementById('selectAllAccounts').checked;
+            document.querySelectorAll('.account-checkbox').forEach(cb => {
+                cb.checked = checked;
+                const email = cb.value.replace(/\\'/g, "'");
+                if (checked) {
+                    selectedAccounts.add(email);
+                } else {
+                    selectedAccounts.delete(email);
+                }
+            });
+            updateSelectedAccountsDisplay();
+        }
+        
+        function toggleAccountSelection(email) {
+            const actualEmail = email.replace(/\\'/g, "'");
+            if (selectedAccounts.has(actualEmail)) {
+                selectedAccounts.delete(actualEmail);
+            } else {
+                selectedAccounts.add(actualEmail);
+            }
+            updateSelectedAccountsDisplay();
+        }
+        
+        function updateSelectedAccountsDisplay() {
+            const count = selectedAccounts.size;
+            const countElem = document.getElementById('selectedAccountCount');
+            const btnElem = document.getElementById('batchDelAccountsBtn');
+            if (countElem) countElem.textContent = count;
+            if (btnElem) btnElem.disabled = count === 0;
+        }
+        
+        async function batchDeleteAccounts() {
+            if (selectedAccounts.size === 0) return;
+            if (!confirm(`确定要删除选中的 ${selectedAccounts.size} 个账号吗？此操作不可恢复！`)) return;
+            
+            const deleteBtn = document.getElementById('batchDelAccountsBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '删除中...';
+            }
+            
+            try {
+                const promises = Array.from(selectedAccounts).map(email =>
+                    fetch(`/api/accounts/${encodeURIComponent(email)}`, { method: 'DELETE' })
+                );
+                await Promise.all(promises);
+                
+                selectedAccounts.clear();
+                await refreshAccounts();
+                alert('✅ 批量删除成功！');
+            } catch (error) {
+                alert('❌ 批量删除失败：' + error.message);
+            }
+        }
+        
+        function exportAccounts() {
+            if (accounts.length === 0) {
+                alert('⚠️ 没有账号可以导出');
+                return;
+            }
+            
+            const csv = '邮箱,密码,状态,创建时间\\n' +
+                accounts.map(a => `${a.email},${a.password},${a.status || 'active'},${new Date(a.createdAt).toLocaleString('zh-CN')}`).join('\\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `windsurf_accounts_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ 导出成功！');
         }
         
         // 复制文本

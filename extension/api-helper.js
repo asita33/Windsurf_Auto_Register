@@ -1,7 +1,9 @@
 // API请求辅助函数
 // 统一处理API密钥和错误处理
 
-const API_KEY = 'windsurf-auto-register-2024-secure-key';
+// 优先使用私有配置，否则使用CONFIG
+const API_KEY = typeof PRIVATE_CONFIG !== 'undefined' ? PRIVATE_CONFIG.API_KEY : 
+                (typeof CONFIG !== 'undefined' ? CONFIG.API_KEY : 'YOUR_API_KEY_HERE');
 
 /**
  * 发送API请求（带API密钥）

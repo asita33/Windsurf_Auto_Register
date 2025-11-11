@@ -11,6 +11,12 @@ backend/activation-codes.json
 **/API_*.md
 **/*_SECRET*.md
 
+# 私有配置文件 - 包含API密钥
+extension/config.private.js
+backend/.env
+*.private.js
+*.secret.js
+
 # 排除文档文件（保留重要的 README）
 /*.md
 !README.md

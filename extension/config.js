@@ -1,7 +1,8 @@
 // 扩展配置文件
-const CONFIG = {
-    // API密钥 - 与后端保持一致
-    API_KEY: 'windsurf-auto-register-2024-secure-key',
+// 如果存在私有配置，优先使用私有配置
+const CONFIG = typeof PRIVATE_CONFIG !== 'undefined' ? PRIVATE_CONFIG : {
+    // API密钥 - 与后端保持一致（公开版本使用占位符）
+    API_KEY: 'YOUR_API_KEY_HERE',
     
     // 默认后端地址
     DEFAULT_BACKEND_URL: 'https://windsurf-auto-register.onrender.com',

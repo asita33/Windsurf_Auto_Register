@@ -1,0 +1,15 @@
+// 私有配置文件示例
+// 复制此文件为 config.private.js 并填入你的实际值
+
+const PRIVATE_CONFIG = {
+    // 你的私有API密钥（从Render环境变量中获取）
+    API_KEY: 'YOUR_ACTUAL_API_KEY_HERE',
+    
+    // 后端服务器地址
+    BACKEND_URL: 'https://windsurf-auto-register.onrender.com'
+};
+
+// 导出配置
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = PRIVATE_CONFIG;
+}

@@ -738,7 +738,10 @@
                         <h2>已生成的动态码</h2>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <span id="availableCodesCount" style="color: var(--text-light);"></span>
-                            <button class="btn btn-sm" style="background: var(--danger); color: white;" onclick="clearExpiredCodes()">
+                            <button class="btn btn-sm" style="background: var(--danger); color: white;" onclick="clearAllCodes()">
+                                🗑️ 清空所有
+                            </button>
+                            <button class="btn btn-sm" style="background: var(--warning); color: white;" onclick="clearExpiredCodes()">
                                 🗑️ 清理过期
                             </button>
                             <button class="btn btn-sm btn-primary" onclick="refreshCodes()">🔄 刷新</button>
@@ -889,6 +892,23 @@
     </div>
     
     <script>
+        // API配置
+        const API_KEY = 'windsurf-auto-register-2024-secure-key';
+        
+        // 辅助函数：带API密钥的fetch
+        async function apiFetch(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY,
+                ...options.headers
+            };
+            
+            return fetch(url, {
+                ...options,
+                headers
+            });
+        }
+        
         // 全局状态
         let accounts = [];
         let activationCodes = [];
@@ -925,7 +945,7 @@
         async function updateDashboard() {
             try {
                 // 获取账号统计
-                const accountsRes = await fetch('/api/accounts');
+                const accountsRes = await apiFetch('/api/accounts');
                 const accountsData = await accountsRes.json();
                 document.getElementById('dashTotalAccounts').textContent = accountsData.total || 0;
                 
@@ -937,7 +957,7 @@
                 document.getElementById('dashWeeklyAccounts').textContent = weeklyAccounts;
                 
                 // 获取动态码统计
-                const codesRes = await fetch('/api/activation-codes');
+                const codesRes = await apiFetch('/api/get-activation-codes');
                 const codesData = await codesRes.json();
                 const availableCodes = codesData.codes?.filter(c => !c.used && !c.expired).length || 0;
                 const usedCodes = codesData.codes?.filter(c => c.used).length || 0;
@@ -945,12 +965,12 @@
                 document.getElementById('dashUsedCodes').textContent = usedCodes;
                 
                 // 获取邮箱统计
-                const emailsRes = await fetch('/api/emails');
+                const emailsRes = await apiFetch('/api/emails');
                 const emailsData = await emailsRes.json();
                 document.getElementById('dashTotalEmails').textContent = emailsData.total || 0;
                 
                 // 获取IP统计
-                const ipsRes = await fetch('/api/ip-usage');
+                const ipsRes = await apiFetch('/api/get-ip-records');
                 const ipsData = await ipsRes.json();
                 const todayIPs = new Set(ipsData.ipRecords?.filter(r => {
                     const today = new Date().toDateString();
@@ -1006,7 +1026,7 @@
             }
             
             try {
-                const response = await fetch('/api/save-account', {
+                const response = await apiFetch('/api/save-account', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1032,7 +1052,7 @@
         // 加载账号
         async function refreshAccounts() {
             try {
-                const response = await fetch('/api/accounts');
+                const response = await apiFetch('/api/accounts');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1143,7 +1163,7 @@
         async function refreshEmails() {
             try {
                 console.log('📥 [邮箱列表] 开始加载邮箱列表...');
-                const response = await fetch('/api/emails');
+                const response = await apiFetch('/api/emails');
                 console.log('📡 [邮箱列表] 响应状态:', response.status);
                 
                 const data = await response.json();
@@ -1483,10 +1503,23 @@
             const container = document.getElementById('codesList');
             const now = new Date();
             
+            console.log('🎨 开始渲染动态码...');
+            console.log('📊 activationCodes数量:', activationCodes.length);
+            console.log('📊 activationCodes类型:', typeof activationCodes, Array.isArray(activationCodes));
+            
             // 使用过滤后的数据（只在有搜索或筛选时使用过滤数据）
-            const hasSearch = document.getElementById('codeSearch')?.value?.trim();
-            const hasFilter = document.getElementById('codeStatusFilter')?.value !== 'all';
+            const searchInput = document.getElementById('codeSearch');
+            const filterSelect = document.getElementById('codeStatusFilter');
+            const hasSearch = searchInput && searchInput.value && searchInput.value.trim();
+            const hasFilter = filterSelect && filterSelect.value !== 'all';
+            
+            console.log('📊 hasSearch:', hasSearch, 'hasFilter:', hasFilter);
+            console.log('📊 filteredCodes数量:', filteredCodes.length);
+            
             const dataToShow = (hasSearch || hasFilter) ? filteredCodes : activationCodes;
+            
+            console.log('📊 dataToShow数量:', dataToShow.length);
+            console.log('📊 前3个数据:', dataToShow.slice(0, 3));
             
             // 统计可用码（未过期且未用完）
             const availableCount = dataToShow.filter(c => {
@@ -1499,15 +1532,19 @@
                 `可用: ${availableCount} / ${dataToShow.length}`;
             
             if (dataToShow.length === 0) {
+                console.log('❌ dataToShow为空，显示空状态');
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🔑</div>
                         <div class="empty-state-title">没有找到动态码</div>
                         <p>点击上方按钮生成动态码</p>
+                        <p style="color: #999; font-size: 12px;">调试: activationCodes=${activationCodes.length}, filteredCodes=${filteredCodes.length}</p>
                     </div>
                 `;
                 return;
             }
+            
+            console.log('✅ 开始渲染', dataToShow.length, '个动态码');
             
             // 分页计算
             const start = (currentCodePage - 1) * ITEMS_PER_PAGE;
@@ -1733,6 +1770,33 @@
             }
         }
         
+        // 清空所有动态码
+        async function clearAllCodes() {
+            if (!confirm('⚠️ 确定要清空所有动态码吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            try {
+                const response = await apiFetch('/api/clear-all-activation-codes', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    activationCodes = [];
+                    renderCodes();
+                    updateStats();
+                    alert('✅ 所有动态码已清空');
+                } else {
+                    alert('❌ 清空失败: ' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('清空动态码失败:', error);
+                alert('❌ 清空失败: ' + error.message);
+            }
+        }
+        
         // 清理过期动态码
         async function clearExpiredCodes() {
             const now = new Date();
@@ -1765,7 +1829,7 @@
         // 保存动态码到服务器
         async function saveActivationCodesToServer() {
             try {
-                const response = await fetch('/api/save-activation-codes', {
+                const response = await apiFetch('/api/save-activation-codes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1788,7 +1852,7 @@
         // 从服务器加载动态码
         async function loadActivationCodesFromServer() {
             try {
-                const response = await fetch('/api/get-activation-codes');
+                const response = await apiFetch('/api/get-activation-codes');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1834,7 +1898,7 @@
                 // 保存到后端
                 try {
                     console.log('💾 开始保存二维码到Upstash...');
-                    const response = await fetch('/api/save-donation-qrcode', {
+                    const response = await apiFetch('/api/save-donation-qrcode', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1865,7 +1929,7 @@
         async function verifyQRCodeSaved() {
             try {
                 console.log('🔍 验证二维码是否保存...');
-                const response = await fetch('/api/get-donation-qrcode');
+                const response = await apiFetch('/api/get-donation-qrcode');
                 const data = await response.json();
                 
                 if (data.success && data.qrCode) {
@@ -1882,7 +1946,7 @@
         async function loadQRCode() {
             try {
                 console.log('📥 开始加载二维码...');
-                const response = await fetch('/api/get-donation-qrcode');
+                const response = await apiFetch('/api/get-donation-qrcode');
                 console.log('📡 加载响应状态:', response.status);
                 
                 const data = await response.json();
@@ -2042,7 +2106,7 @@
         // 加载黑白名单
         async function loadIPLists() {
             try {
-                const response = await fetch('/api/get-ip-lists');
+                const response = await apiFetch('/api/get-ip-lists');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -2175,7 +2239,7 @@
         // 保存黑白名单到服务器
         async function saveIPLists() {
             try {
-                const response = await fetch('/api/save-ip-lists', {
+                const response = await apiFetch('/api/save-ip-lists', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2195,7 +2259,7 @@
         
         async function refreshIPList() {
             try {
-                const response = await fetch('/api/get-ip-records');
+                const response = await apiFetch('/api/get-ip-records');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -2287,7 +2351,7 @@
             }
             
             try {
-                const response = await fetch('/api/reset-ip-activation', {
+                const response = await apiFetch('/api/reset-ip-activation', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -226,7 +226,12 @@
             const url = `${backendUrl}/api/get-donation-qrcode`;
             console.log('🌐 [二维码加载] 请求URL:', url);
             
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                }
+            });
             console.log('📡 [二维码加载] 响应状态:', response.status);
             
             const data = await response.json();
@@ -357,7 +362,12 @@
             backendUrl = config;
             
             // 检查IP使用次数
-            const response = await fetch(`${backendUrl}/api/check-ip-usage`);
+            const response = await fetch(`${backendUrl}/api/check-ip-usage`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                }
+            });
             const data = await response.json();
             
             if (data.success) {
@@ -404,7 +414,8 @@
             const response = await fetch(`${backendUrl}/api/verify-code`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'windsurf-auto-register-2024-secure-key'
                 },
                 body: JSON.stringify({ code })
             });
@@ -484,14 +495,13 @@
                     const recordResponse = await fetch(`${backendUrl}/api/record-ip-usage`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
-                        }
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                        },
+                        body: JSON.stringify({ email: currentEmail })
                     });
                     const recordData = await recordResponse.json();
-                    if (recordData.success) {
-                        console.log('IP使用已记录，次数:', recordData.usageCount);
-                        usageCount = recordData.usageCount;
-                    }
+                    console.log('IP使用记录结果:', recordData);
                 } catch (error) {
                     console.error('记录IP使用失败:', error);
                 }
@@ -570,13 +580,23 @@
             backendUrl = config;
             
             // 不显示任何日志，静默执行
-            const response = await fetch(`${backendUrl}/api/get-messages/${currentEmail}`);
+            const response = await fetch(`${backendUrl}/api/get-messages/${currentEmail}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                }
+            });
             const data = await response.json();
 
             if (data.success && data.messages && data.messages.length > 0) {
                 const latestMessage = data.messages[0];
 
-                const detailResponse = await fetch(`${backendUrl}/api/get-message/${currentEmail}/${latestMessage.id}`);
+                const detailResponse = await fetch(`${backendUrl}/api/get-message/${currentEmail}/${latestMessage.id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                    }
+                });
                 const detailData = await detailResponse.json();
 
                 if (detailData.success && detailData.message) {

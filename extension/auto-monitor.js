@@ -147,7 +147,12 @@ async function startAutoVerificationCodeCheck() {
         
         try {
             const backendUrl = await getBackendUrl();
-            const response = await fetch(`${backendUrl}/api/get-messages/${email}`);
+            const response = await fetch(`${backendUrl}/api/get-messages/${email}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                }
+            });
             const data = await response.json();
             
             if (data.success && data.messages && data.messages.length > 0) {
@@ -168,7 +173,12 @@ async function startAutoVerificationCodeCheck() {
                 
                 // 获取邮件详情
                 try {
-                    const detailResponse = await fetch(`${backendUrl}/api/get-message/${email}/${latestMessage.id}`);
+                    const detailResponse = await fetch(`${backendUrl}/api/get-message/${email}/${latestMessage.id}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                        }
+                    });
                     const detailData = await detailResponse.json();
                     
                     if (detailData.success && detailData.message) {
@@ -396,7 +406,8 @@ async function saveAccountToBackend(email) {
         const response = await fetch(`${backendUrl}/api/save-account`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': 'windsurf-auto-register-2024-secure-key'
             },
             body: JSON.stringify({
                 email,

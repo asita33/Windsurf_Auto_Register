@@ -39,10 +39,11 @@ function saveSettings() {
 // 测试后端连接
 async function testConnection(backendUrl) {
     try {
-        const response = await fetch(`${backendUrl}/api/accounts`, {
+        const response = await fetch(`${backendUrl}/api/test`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': 'windsurf-auto-register-2024-secure-key'
             }
         });
         

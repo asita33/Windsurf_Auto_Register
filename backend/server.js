@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || 'windsurf-auto-register-2024-secure-key';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15分钟
-const RATE_LIMIT_MAX_REQUESTS = 100; // 每个IP最多100次请求
+const RATE_LIMIT_MAX_REQUESTS = 500; // 每个IP最多500次请求（提高限制）
 
 // 速率限制存储
 const rateLimitStore = new Map();
@@ -138,18 +138,10 @@ function verifyAdminPassword(req, res, next) {
 
 // ==================== 静态文件和路由 ====================
 
-// 提供静态文件服务 - 使用绝对路径
-app.use(express.static(path.join(__dirname, 'public')));
-
-// 根路由 - 提供 index.html（需要管理员密码）
-app.get('/', (req, res, next) => {
-    // 如果是API请求，跳过
-    if (req.path.startsWith('/api/')) {
-        return next();
-    }
-    
-    // 检查是否已登录（通过cookie或query参数）
-    const adminPassword = req.query.password || req.headers['x-admin-password'];
+// 根路由 - 提供登录页面或管理后台（需要管理员密码）
+app.get('/', (req, res) => {
+    // 检查是否已登录（通过query参数）
+    const adminPassword = req.query.password;
     
     if (!adminPassword || adminPassword !== ADMIN_PASSWORD) {
         // 返回登录页面
@@ -252,8 +244,14 @@ app.get('/', (req, res, next) => {
         `);
     }
     
+    // 密码正确，返回管理后台
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// 静态文件服务 - 只用于CSS/JS等资源，不包括HTML
+app.use('/css', express.static(path.join(__dirname, 'public', 'css')));
+app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
 // 临时邮箱服务API配置
 const TEMP_MAIL_API = 'https://www.1secmail.com/api/v1/';
@@ -1240,6 +1238,28 @@ app.get('/api/get-activation-codes', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ 获取动态码失败:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 清空所有动态码（管理员功能）
+app.post('/api/clear-all-activation-codes', async (req, res) => {
+    try {
+        console.log('🗑️ 收到清空所有动态码请求');
+        
+        // 清空动态码
+        await kv.set('activationCodes', []);
+        
+        console.log('✅ 所有动态码已清空');
+        res.json({
+            success: true,
+            message: '所有动态码已清空'
+        });
+    } catch (error) {
+        console.error('❌ 清空动态码失败:', error);
         res.status(500).json({
             success: false,
             error: error.message

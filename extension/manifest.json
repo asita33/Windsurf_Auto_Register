@@ -14,7 +14,8 @@
     "https://windsurf.com/*",
     "https://windsurf.com/account/*",
     "http://localhost:3000/*",
-    "https://*.vercel.app/*"
+    "https://*.vercel.app/*",
+    "https://*.onrender.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -25,7 +26,7 @@
         "https://windsurf.com/account/register*",
         "https://windsurf.com/account/*"
       ],
-      "js": ["content.js", "auto-monitor.js", "floating-panel.js"],
+      "js": ["config.js", "api-helper.js", "content.js", "auto-monitor.js", "floating-panel.js"],
       "run_at": "document_end"
     }
   ],

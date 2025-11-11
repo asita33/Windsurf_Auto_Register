@@ -22,6 +22,15 @@ console.log('✅ Upstash Redis客户端初始化成功！');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 安全配置
+const API_KEY = process.env.API_KEY || 'windsurf-auto-register-2024-secure-key';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15分钟
+const RATE_LIMIT_MAX_REQUESTS = 100; // 每个IP最多100次请求
+
+// 速率限制存储
+const rateLimitStore = new Map();
+
 // 账号存储文件路径
 const ACCOUNTS_FILE = path.join(__dirname, 'accounts.json');
 
@@ -31,15 +40,218 @@ const emailService = new EmailService(kv);
 // 存储临时邮箱和验证码（保留用于兼容）
 const emailStore = new Map();
 
-app.use(cors());
+// CORS配置 - 只允许特定来源
+const allowedOrigins = [
+  'chrome-extension://*',
+  'https://windsurf-auto-register.onrender.com',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // 允许没有origin的请求（如Postman）
+    if (!origin) return callback(null, true);
+    
+    // 检查是否是chrome扩展
+    if (origin.startsWith('chrome-extension://')) {
+      return callback(null, true);
+    }
+    
+    // 检查是否在白名单中
+    if (allowedOrigins.some(allowed => origin === allowed || allowed === 'chrome-extension://*')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 // 增加请求体大小限制，支持上传二维码图片（Base64编码）
 app.use(express.json({ limit: '10mb' }));
+
+// ==================== 安全中间件 ====================
+
+// 速率限制中间件
+function rateLimiter(req, res, next) {
+    const ip = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    
+    // 清理过期记录
+    for (const [key, value] of rateLimitStore.entries()) {
+        if (now - value.startTime > RATE_LIMIT_WINDOW) {
+            rateLimitStore.delete(key);
+        }
+    }
+    
+    // 获取或创建IP记录
+    if (!rateLimitStore.has(ip)) {
+        rateLimitStore.set(ip, {
+            count: 1,
+            startTime: now
+        });
+        return next();
+    }
+    
+    const record = rateLimitStore.get(ip);
+    
+    // 检查是否超过限制
+    if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+        const timeLeft = Math.ceil((RATE_LIMIT_WINDOW - (now - record.startTime)) / 1000 / 60);
+        return res.status(429).json({
+            success: false,
+            error: `请求过于频繁，请在 ${timeLeft} 分钟后重试`
+        });
+    }
+    
+    // 增加计数
+    record.count++;
+    next();
+}
+
+// API密钥验证中间件
+function verifyApiKey(req, res, next) {
+    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    
+    if (!apiKey || apiKey !== API_KEY) {
+        return res.status(401).json({
+            success: false,
+            error: '未授权：无效的API密钥'
+        });
+    }
+    
+    next();
+}
+
+// 管理员密码验证中间件
+function verifyAdminPassword(req, res, next) {
+    const password = req.headers['x-admin-password'] || req.query.adminPassword;
+    
+    if (!password || password !== ADMIN_PASSWORD) {
+        return res.status(401).json({
+            success: false,
+            error: '未授权：管理员密码错误'
+        });
+    }
+    
+    next();
+}
+
+// ==================== 静态文件和路由 ====================
 
 // 提供静态文件服务 - 使用绝对路径
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 根路由 - 提供 index.html
-app.get('/', (req, res) => {
+// 根路由 - 提供 index.html（需要管理员密码）
+app.get('/', (req, res, next) => {
+    // 如果是API请求，跳过
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+    
+    // 检查是否已登录（通过cookie或query参数）
+    const adminPassword = req.query.password || req.headers['x-admin-password'];
+    
+    if (!adminPassword || adminPassword !== ADMIN_PASSWORD) {
+        // 返回登录页面
+        return res.send(`
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台登录</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🔐 管理后台</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="password">管理员密码</label>
+                <input type="password" id="password" placeholder="请输入管理员密码" required>
+            </div>
+            <button type="submit">登录</button>
+            <div class="error" id="error">密码错误，请重试</div>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            window.location.href = '/?password=' + encodeURIComponent(password);
+        });
+    </script>
+</body>
+</html>
+        `);
+    }
+    
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -57,6 +269,11 @@ const FALLBACK_DOMAINS = [
     'wwjmp.com',
     'esiix.com'
 ];
+
+// ==================== API路由（需要API密钥和速率限制） ====================
+
+// 为所有API路由添加速率限制和API密钥验证
+app.use('/api/*', rateLimiter, verifyApiKey);
 
 // 获取可用的邮箱服务列表
 app.get('/api/services', (req, res) => {

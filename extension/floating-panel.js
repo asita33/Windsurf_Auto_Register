@@ -472,14 +472,7 @@
 
             // 生成邮箱
             console.log('请求URL:', `${backendUrl}/api/generate-email`);
-            const response = await fetch(`${backendUrl}/api/generate-email`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            console.log('响应状态:', response.status);
-            const data = await response.json();
+            const data = await apiPost(`${backendUrl}/api/generate-email`);
 
             if (data.success) {
                 currentEmail = data.email;

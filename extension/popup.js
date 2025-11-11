@@ -34,7 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // 测试后端连接
 async function testBackendConnection() {
     try {
-        const response = await fetch(`${backendUrl}/api/test`);
+        const response = await fetch(`${backendUrl}/api/test`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+            }
+        });
         const data = await response.json();
         if (data.success) {
             console.log('[Popup] 后端连接正常');
@@ -194,7 +199,8 @@ async function generateEmail() {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': 'windsurf-auto-register-2024-secure-key'
             }
         });
         
@@ -240,7 +246,12 @@ async function checkVerificationCode() {
         checkCodeBtn.innerHTML = '<span class="loading"></span>检查中...';
         addLog('开始检查验证码...');
         
-        const response = await fetch(`${backendUrl}/api/get-messages/${encodeURIComponent(currentEmail)}`);
+        const response = await fetch(`${backendUrl}/api/get-messages/${encodeURIComponent(currentEmail)}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+            }
+        });
         const data = await response.json();
         
         if (data.success && data.messages.length > 0) {
@@ -248,7 +259,13 @@ async function checkVerificationCode() {
             
             const latestMessage = data.messages[0];
             const detailResponse = await fetch(
-                `${backendUrl}/api/get-message/${encodeURIComponent(currentEmail)}/${latestMessage.id}`
+                `${backendUrl}/api/get-message/${encodeURIComponent(currentEmail)}/${latestMessage.id}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'windsurf-auto-register-2024-secure-key'
+                    }
+                }
             );
             const detailData = await detailResponse.json();
             

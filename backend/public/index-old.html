@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮箱管理后台 - 增强版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .emails-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 工具栏样式 */
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .page-size-selector {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        /* 邮箱列表样式 */
+        .email-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .email-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .email-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .email-item.selected-for-batch {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+        
+        .email-checkbox {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .email-content {
+            margin-left: 35px;
+        }
+        
+        .email-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .email-address {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .email-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge.success {
+            background: #4caf50;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .web-link {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #4caf50;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 批量操作栏 */
+        .batch-actions-bar {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .batch-actions-bar.show {
+            display: flex;
+        }
+        
+        .batch-info {
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .batch-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .messages-panel {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .message-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .verification-code {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .verification-code strong {
+            font-size: 24px;
+            color: #ff6b6b;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Windsurf 自动注册 - 管理后台</h1>
+        
+        <!-- 导航标签 -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('emails')">📧 邮箱列表</button>
+            <button class="tab-btn" onclick="switchTab('accounts')">🔐 账号管理</button>
+        </div>
+        
+        <!-- 邮箱列表标签页 -->
+        <div class="tab-content active" id="emails-tab">
+        <div class="header">
+            <h1>📧 邮箱管理后台 - 增强版</h1>
+            <p>支持分页、搜索和批量操作</p>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="totalEmails">0</h3>
+                    <p>总邮箱数</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="currentPageCount">0</h3>
+                    <p>当前页数量</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="selectedCount">0</h3>
+                    <p>已选择</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="emails-section">
+            <!-- 工具栏 -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 搜索邮箱地址..." onkeyup="handleSearch()">
+                </div>
+                <div class="toolbar-actions">
+                    <button onclick="refreshEmails()">🔄 刷新</button>
+                    <button onclick="createNewEmail()">➕ 新建邮箱</button>
+                    <button class="btn-warning" onclick="toggleSelectAll()">☑️ 全选/取消</button>
+                    <button class="btn-danger" onclick="clearAllEmails()">🗑️ 清空所有</button>
+                </div>
+            </div>
+            
+            <!-- 批量操作栏 -->
+            <div id="batchActionsBar" class="batch-actions-bar">
+                <div class="batch-info">
+                    已选择 <span id="batchCount">0</span> 个邮箱
+                </div>
+                <div class="batch-buttons">
+                    <button class="btn-danger btn-small" onclick="batchDelete()">批量删除</button>
+                </div>
+            </div>
+            
+            <!-- 邮箱列表 -->
+            <div id="emailList" class="email-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 账号管理标签页 -->
+        <div class="tab-content" id="accounts-tab">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-title">保存的账号</div>
+                    <div class="stat-value" id="accountsCount">0</div>
+                </div>
+            </div>
+            
+            <!-- 添加账号按钮 -->
+            <button onclick="showAddAccountModal()" style="
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 20px;
+                font-size: 14px;
+                transition: transform 0.2s;
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                ➕ 手动添加账号
+            </button>
+            
+            <div class="accounts-list" id="accountsList">
+                <p class="loading">加载中...</p>
+            </div>
+        </div>
+        
+        <!-- 添加账号弹窗 -->
+        <div id="addAccountModal" style="
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        ">
+            <div style="
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            ">
+                <h2 style="margin: 0 0 20px 0; color: #667eea;">➕ 添加账号</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">邮箱地址</label>
+                    <input id="newAccountEmail" type="email" placeholder="例如: user@example.com" style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">密码</label>
+                    <input id="newAccountPassword" type="text" placeholder="输入密码" style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">服务名称</label>
+                    <input id="newAccountService" type="text" value="Windsurf" placeholder="例如: Windsurf" style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        box-sizing: border-box;
+                    ">
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="saveNewAccount()" style="
+                        flex: 1;
+                        padding: 12px;
+                        background: linear-gradient(135deg, #4caf50, #45a049);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">💾 保存</button>
+                    <button onclick="closeAddAccountModal()" style="
+                        flex: 1;
+                        padding: 12px;
+                        background: #f5f5f5;
+                        color: #666;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pagination" style="display: none;">
+                <div class="pagination-info">
+                    显示 <span id="pageStart">0</span>-<span id="pageEnd">0</span> 
+                    / 共 <span id="totalCount">0</span> 个邮箱
+                </div>
+                <div class="pagination-controls">
+                    <select id="pageSizeSelect" class="page-size-selector" onchange="changePageSize()">
+                        <option value="10">10 条/页</option>
+                        <option value="20">20 条/页</option>
+                        <option value="50">50 条/页</option>
+                        <option value="100">100 条/页</option>
+                    </select>
+                    <button onclick="goToPage(1)" id="firstPageBtn">首页</button>
+                    <button onclick="goToPage(currentPage - 1)" id="prevPageBtn">上一页</button>
+                    <span>第 <span id="currentPageNum">1</span> / <span id="totalPages">1</span> 页</span>
+                    <button onclick="goToPage(currentPage + 1)" id="nextPageBtn">下一页</button>
+                    <button onclick="goToPage(totalPagesCount)" id="lastPageBtn">末页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let emails = [];
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalPagesCount = 1;
+        let totalCount = 0;
+        let searchKeyword = '';
+        let selectedEmails = new Set();
+        let currentTab = 'emails';
+        
+        // 切换标签页
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const tabContent = document.getElementById(`${tab}-tab`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+            
+            // 加载对应数据
+            if (tab === 'emails') {
+                loadEmails();
+            } else if (tab === 'accounts') {
+                loadAccounts();
+            }
+        }
+        
+        // 加载账号列表
+        async function loadAccounts() {
+            try {
+                const response = await fetch('/api/accounts');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayAccounts(data.accounts);
+                    document.getElementById('accountsCount').textContent = data.total;
+                }
+            } catch (error) {
+                console.error('加载账号列表失败:', error);
+                document.getElementById('accountsList').innerHTML = 
+                    '<p class="loading" style="color: #f44336;">加载失败，请刷新重试</p>';
+            }
+        }
+        
+        // 显示账号列表
+        function displayAccounts(accounts) {
+            const container = document.getElementById('accountsList');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = '<p class="loading">暂无保存的账号</p>';
+                return;
+            }
+            
+            container.innerHTML = accounts.map(account => `
+                <div class="email-card">
+                    <div class="email-header">
+                        <div class="email-address">
+                            <span class="email-icon">🔐</span>
+                            <strong>${account.email}</strong>
+                        </div>
+                        <div class="email-actions">
+                            <button class="btn-copy" onclick="copyText('${account.email}', '邮箱')">
+                                📋 复制邮箱
+                            </button>
+                            <button class="btn-copy" onclick="copyText('${account.password}', '密码')">
+                                🔑 复制密码
+                            </button>
+                            <button class="btn-delete" onclick="deleteAccount('${account.email}')">
+                                🗑️ 删除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="email-meta">
+                        <span class="meta-item">
+                            <span class="meta-icon">🔑</span>
+                            密码: <code>${account.password}</code>
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">📅</span>
+                            创建: ${formatTime(new Date(account.createdAt).getTime())}
+                        </span>
+                        <span class="meta-item">
+                            <span class="meta-icon">🌐</span>
+                            服务: ${account.service || 'Windsurf'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 删除账号
+        async function deleteAccount(email) {
+            if (!confirm(`确定要删除账号 ${email} 吗？`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/accounts/${encodeURIComponent(email)}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('账号已删除');
+                    loadAccounts();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (error) {
+                console.error('删除账号失败:', error);
+                alert('删除失败，请重试');
+            }
+        }
+        
+        // 复制文本
+        function copyText(text, label) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`${label}已复制: ${text}`);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+        
+        // 显示添加账号弹窗
+        function showAddAccountModal() {
+            const modal = document.getElementById('addAccountModal');
+            modal.style.display = 'flex';
+            // 清空输入框
+            document.getElementById('newAccountEmail').value = '';
+            document.getElementById('newAccountPassword').value = '';
+            document.getElementById('newAccountService').value = 'Windsurf';
+        }
+        
+        // 关闭添加账号弹窗
+        function closeAddAccountModal() {
+            const modal = document.getElementById('addAccountModal');
+            modal.style.display = 'none';
+        }
+        
+        // 保存新账号
+        async function saveNewAccount() {
+            const email = document.getElementById('newAccountEmail').value.trim();
+            const password = document.getElementById('newAccountPassword').value.trim();
+            const service = document.getElementById('newAccountService').value.trim() || 'Windsurf';
+            
+            // 验证输入
+            if (!email) {
+                alert('请输入邮箱地址');
+                return;
+            }
+            
+            if (!password) {
+                alert('请输入密码');
+                return;
+            }
+            
+            // 简单的邮箱格式验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('请输入有效的邮箱地址');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/save-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        service: service
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ 账号保存成功！');
+                    closeAddAccountModal();
+                    loadAccounts(); // 刷新账号列表
+                } else {
+                    alert('❌ 保存失败: ' + data.error);
+                }
+            } catch (error) {
+                console.error('保存账号失败:', error);
+                alert('❌ 保存失败: ' + error.message);
+            }
+        }
+        
+        // 点击弹窗外部关闭
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('addAccountModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAddAccountModal();
+                    }
+                });
+            }
+        });
+        
+        // 页面加载
+        window.addEventListener('load', () => {
+            loadEmails();
+            // 每30秒自动刷新
+            setInterval(() => {
+                if (selectedEmails.size === 0) {
+                    loadEmails();
+                }
+            }, 30000);
+        });
+        
+        // 加载邮箱列表
+        async function loadEmails() {
+            try {
+                const url = `/api/emails?page=${currentPage}&pageSize=${pageSize}${searchKeyword ? '&search=' + searchKeyword : ''}`;
+                console.log('请求URL:', url);
+                const response = await fetch(url);
+                const data = await response.json();
+                console.log('响应数据:', data);
+                
+                if (data.success) {
+                    emails = data.emails || [];
+                    
+                    // 兼容旧版 API（没有 pagination）
+                    if (data.pagination) {
+                        totalCount = data.pagination.total;
+                        totalPagesCount = data.pagination.totalPages;
+                    } else {
+                        // 旧版 API 使用 count
+                        totalCount = data.count || emails.length;
+                        totalPagesCount = 1;
+                    }
+                    
+                    updateStats();
+                    renderEmails();
+                    updatePagination();
+                } else {
+                    console.error('API 返回失败:', data);
+                }
+            } catch (error) {
+                console.error('加载邮箱失败:', error);
+                // 显示错误信息
+                document.getElementById('emailList').innerHTML = `
+                    <div class="empty-state">
+                        <h3>❌ 加载失败</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadEmails()">重试</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            document.getElementById('totalEmails').textContent = totalCount;
+            document.getElementById('currentPageCount').textContent = emails.length;
+            document.getElementById('selectedCount').textContent = selectedEmails.size;
+        }
+        
+        // 渲染邮箱列表
+        function renderEmails() {
+            const container = document.getElementById('emailList');
+            
+            if (emails.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>😊 暂无邮箱</h3>
+                        <p>点击"新建邮箱"创建第一个临时邮箱</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = emails.map(email => `
+                <div class="email-item ${selectedEmails.has(email.email) ? 'selected-for-batch' : ''}" id="email-${email.email.replace(/[@.]/g, '-')}">
+                    <input type="checkbox" class="email-checkbox" 
+                           ${selectedEmails.has(email.email) ? 'checked' : ''}
+                           onchange="toggleEmailSelection('${email.email}')">
+                    <div class="email-content">
+                        <div class="email-header">
+                            <div class="email-address">${email.email}</div>
+                            <span class="badge ${email.messageCount > 0 ? 'success' : ''}">${email.messageCount || 0} 封邮件</span>
+                        </div>
+                        <div class="email-meta">
+                            <span>📅 ${formatTime(email.createdAt)}</span>
+                            <span>⏰ ${getTimeAgo(email.createdAt)}</span>
+                            <span>🔧 ${email.service || '未知'}</span>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-small btn-success" onclick="checkMessages('${email.email}')">检查邮件</button>
+                            <button class="btn-small" onclick="copyEmail('${email.email}')">复制邮箱</button>
+                            ${email.webUrl ? `<a href="${email.webUrl}" target="_blank" class="web-link">🌐 网页查看</a>` : ''}
+                            <button class="btn-small btn-danger" onclick="deleteEmail('${email.email}')">删除</button>
+                        </div>
+                        <div id="messages-${email.email.replace(/[@.]/g, '-')}" class="messages-panel" style="display: none;"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 更新分页信息
+        function updatePagination() {
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, totalCount);
+            
+            document.getElementById('pageStart').textContent = totalCount > 0 ? start : 0;
+            document.getElementById('pageEnd').textContent = end;
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('currentPageNum').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPagesCount || 1;
+            
+            const firstBtn = document.getElementById('firstPageBtn');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const lastBtn = document.getElementById('lastPageBtn');
+            
+            if (firstBtn) firstBtn.disabled = currentPage === 1;
+            if (prevBtn) prevBtn.disabled = currentPage === 1;
+            if (nextBtn) nextBtn.disabled = currentPage >= totalPagesCount;
+            if (lastBtn) lastBtn.disabled = currentPage >= totalPagesCount;
+        }
+        
+        // 跳转页面
+        function goToPage(page) {
+            if (page < 1 || page > totalPagesCount) return;
+            currentPage = page;
+            loadEmails();
+        }
+        
+        // 改变每页数量
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+            currentPage = 1;
+            loadEmails();
+        }
+        
+        // 搜索
+        function handleSearch() {
+            searchKeyword = document.getElementById('searchInput').value.trim();
+            currentPage = 1;
+            loadEmails();
+        }
+        
+        // 切换邮箱选择
+        function toggleEmailSelection(email) {
+            if (selectedEmails.has(email)) {
+                selectedEmails.delete(email);
+            } else {
+                selectedEmails.add(email);
+            }
+            updateBatchActionsBar();
+            renderEmails();
+        }
+        
+        // 全选/取消全选
+        function toggleSelectAll() {
+            if (selectedEmails.size === emails.length) {
+                selectedEmails.clear();
+            } else {
+                emails.forEach(email => selectedEmails.add(email.email));
+            }
+            updateBatchActionsBar();
+            renderEmails();
+        }
+        
+        // 清除选择
+        function clearSelection() {
+            selectedEmails.clear();
+            updateBatchActionsBar();
+            renderEmails();
+        }
+        
+        // 更新批量操作栏
+        function updateBatchActionsBar() {
+            const bar = document.getElementById('batchActionsBar');
+            const count = document.getElementById('batchCount');
+            
+            if (selectedEmails.size > 0) {
+                bar.classList.add('show');
+                count.textContent = selectedEmails.size;
+            } else {
+                bar.classList.remove('show');
+            }
+            
+            document.getElementById('selectedCount').textContent = selectedEmails.size;
+        }
+        
+        // 批量删除
+        async function batchDelete() {
+            if (selectedEmails.size === 0) {
+                alert('请先选择要删除的邮箱');
+                return;
+            }
+            
+            if (!confirm(`确定要删除选中的 ${selectedEmails.size} 个邮箱吗？`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/delete-emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emails: Array.from(selectedEmails) })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    selectedEmails.clear();
+                    updateBatchActionsBar();
+                    loadEmails();
+                } else {
+                    alert('❌ 批量删除失败');
+                }
+            } catch (error) {
+                alert('❌ 批量删除失败: ' + error.message);
+            }
+        }
+        
+        // 清空所有邮箱
+        async function clearAllEmails() {
+            if (!confirm('⚠️ 确定要清空所有邮箱吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            if (!confirm('⚠️ 再次确认：真的要删除所有邮箱吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/clear-all', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    selectedEmails.clear();
+                    updateBatchActionsBar();
+                    currentPage = 1;
+                    loadEmails();
+                } else {
+                    alert('❌ 清空失败');
+                }
+            } catch (error) {
+                alert('❌ 清空失败: ' + error.message);
+            }
+        }
+        
+        // 创建新邮箱
+        async function createNewEmail() {
+            try {
+                const response = await fetch('/api/generate-email', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ 新邮箱创建成功!\n\n邮箱: ${data.email}\n服务: ${data.service}`);
+                    loadEmails();
+                } else {
+                    alert('❌ 创建失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ 创建失败: ' + error.message);
+            }
+        }
+        
+        // 删除单个邮箱
+        async function deleteEmail(email) {
+            if (!confirm(`确定要删除邮箱 ${email} 吗？`)) return;
+            
+            try {
+                const response = await fetch(`/api/delete-email/${encodeURIComponent(email)}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ 删除成功');
+                    selectedEmails.delete(email);
+                    updateBatchActionsBar();
+                    loadEmails();
+                } else {
+                    alert('❌ 删除失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ 删除失败: ' + error.message);
+            }
+        }
+        
+        // 检查邮件
+        async function checkMessages(email) {
+            const messagesPanel = document.getElementById(`messages-${email.replace(/[@.]/g, '-')}`);
+            messagesPanel.style.display = 'block';
+            messagesPanel.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载邮件中...</p></div>';
+            
+            try {
+                const response = await fetch(`/api/get-messages/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success && data.messages.length > 0) {
+                    const messageDetails = await Promise.all(
+                        data.messages.map(msg => 
+                            fetch(`/api/get-message/${encodeURIComponent(email)}/${msg.id}`)
+                                .then(r => r.json())
+                        )
+                    );
+                    
+                    messagesPanel.innerHTML = messageDetails.map(detail => {
+                        if (!detail.success) return '';
+                        const msg = detail.message;
+                        const code = detail.verificationCode;
+                        
+                        return `
+                            <div class="message-item">
+                                <div><strong>📨 ${msg.from}</strong></div>
+                                <div><strong>${msg.subject}</strong></div>
+                                <div style="margin-top:10px">${(msg.textBody || msg.body || '').substring(0, 200)}...</div>
+                                ${code ? `
+                                    <div class="verification-code">
+                                        <p>🔑 验证码:</p>
+                                        <strong>${code}</strong>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    messagesPanel.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无邮件</p>';
+                }
+            } catch (error) {
+                messagesPanel.innerHTML = '<p style="text-align: center; color: #f44336; padding: 20px;">加载失败</p>';
+            }
+        }
+        
+        // 复制邮箱
+        function copyEmail(email) {
+            navigator.clipboard.writeText(email).then(() => {
+                alert('✅ 邮箱已复制: ' + email);
+            });
+        }
+        
+        // 刷新
+        function refreshEmails() {
+            loadEmails();
+        }
+        
+        // 格式化时间
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN');
+        }
+        
+        // 相对时间
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return '刚刚';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} 分钟前`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} 小时前`;
+            return `${Math.floor(seconds / 86400)} 天前`;
+        }
+    </script>
+</body>
+</html>

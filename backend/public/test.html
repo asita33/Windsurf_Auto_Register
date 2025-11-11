@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>API 测试</title>
+</head>
+<body>
+    <h1>API 测试页面</h1>
+    <button onclick="testAPI()">测试 API</button>
+    <pre id="result"></pre>
+    
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.textContent = '测试中...';
+            
+            try {
+                const response = await fetch('/api/emails?page=1&pageSize=10');
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = '错误: ' + error.message;
+            }
+        }
+        
+        // 自动测试
+        testAPI();
+    </script>
+</body>
+</html>

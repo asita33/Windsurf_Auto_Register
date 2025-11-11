@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windsurf 自动注册 - 管理后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* 主色调 - 现代紫罗兰 */
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --primary-bg: #f5f3ff;
+            
+            /* 功能色 */
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            
+            /* 中性色 */
+            --bg-main: #fafbfc;
+            --bg-light: #ffffff;
+            --bg-card: #ffffff;
+            --bg-dark: #0f172a;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-main);
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 顶部导航 - 现代扁平设计 */
+        .navbar {
+            background: var(--bg-light);
+            padding: 24px 32px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .navbar-brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .navbar-brand h1 {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .navbar-stats {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .navbar-stat {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: var(--bg-main);
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+        }
+        
+        .navbar-stat-icon {
+            font-size: 24px;
+        }
+        
+        .navbar-stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .navbar-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+        }
+        
+        .navbar-stat-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* 标签页 - 现代Pill设计 */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--bg-light);
+            padding: 8px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+        }
+        
+        .tab:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* 内容区域 */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .content-card {
+            background: var(--bg-light);
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+        }
+        
+        /* 账号列表 - 响应式网格 */
+        .accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .accounts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .account-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+        
+        .account-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(139, 92, 246, 0.15);
+        }
+        
+        .account-email {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .account-password {
+            font-family: 'Courier New', monospace;
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .account-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .account-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .account-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        /* 按钮系统 - 现代扁平设计 */
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-copy {
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-copy:hover {
+            background: var(--bg-main);
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .btn-lg {
+            padding: 12px 24px;
+            font-size: 15px;
+        }
+        
+        /* 动态码管理 */
+        .activation-section {
+            margin-top: 24px;
+        }
+        
+        .activation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .activation-header h2 {
+            font-size: 20px;
+            color: var(--text-dark);
+        }
+        
+        .code-generator {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 32px;
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 24px;
+        }
+        
+        .code-generator h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        
+        .code-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .code-input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .code-input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .code-input-group input:focus {
+            outline: none;
+            border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .codes-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .code-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .code-card.used {
+            opacity: 0.6;
+            background: var(--bg-light);
+        }
+        
+        .code-value {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        
+        .code-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .code-status.available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .code-status.used {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* 打赏区域 */
+        .donation-section {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .donation-card {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .donation-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+        }
+        
+        .donation-subtitle {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 32px;
+        }
+        
+        .qr-code-container {
+            background: var(--bg-light);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .qr-code-placeholder {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+            background: white;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .donation-note {
+            font-size: 14px;
+            color: var(--danger);
+            font-weight: 600;
+            background: #fef2f2;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--danger);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        .empty-state-title {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .accounts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .codes-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <div class="navbar">
+            <div class="navbar-brand">
+                <div class="navbar-brand-icon">🚀</div>
+                <div>
+                    <h1>Windsurf 自动注册</h1>
+                    <p style="font-size: 13px; color: var(--text-light); margin-top: 2px;">管理后台 v2.0</p>
+                </div>
+            </div>
+            <div class="navbar-stats">
+                <div class="navbar-stat">
+                    <div class="navbar-stat-icon">👤</div>
+                    <div class="navbar-stat-info">
+                        <div class="navbar-stat-value" id="totalAccounts">0</div>
+                        <div class="navbar-stat-label">总账号</div>
+                    </div>
+                </div>
+                <div class="navbar-stat">
+                    <div class="navbar-stat-icon">🔑</div>
+                    <div class="navbar-stat-info">
+                        <div class="navbar-stat-value" id="totalCodes">0</div>
+                        <div class="navbar-stat-label">动态码</div>
+                    </div>
+                </div>
+                <div class="navbar-stat">
+                    <div class="navbar-stat-icon">📊</div>
+                    <div class="navbar-stat-info">
+                        <div class="navbar-stat-value" id="todayAccounts">0</div>
+                        <div class="navbar-stat-label">今日注册</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 标签页 -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">
+                <span>📊</span> Dashboard
+            </button>
+            <button class="tab" onclick="switchTab('accounts')">
+                <span>👤</span> 账号管理
+            </button>
+            <button class="tab" onclick="switchTab('emails')">
+                <span>📬</span> 邮箱管理
+            </button>
+            <button class="tab" onclick="switchTab('activation')">
+                <span>🔑</span> 动态码
+            </button>
+            <button class="tab" onclick="switchTab('ipmanage')">
+                <span>🌐</span> IP管理
+            </button>
+            <button class="tab" onclick="switchTab('donation')">
+                <span>💝</span> 支持
+            </button>
+        </div>
+        
+        <!-- Dashboard -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="content-card">
+                <h2 style="margin-bottom: 24px; color: var(--text-dark);">📊 数据概览</h2>
+                
+                <!-- 统计卡片 -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 32px;">
+                    <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 24px; border-radius: 16px;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">总注册账号</div>
+                        <div style="font-size: 36px; font-weight: 700;" id="dashTotalAccounts">0</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">↑ 本周新增 <span id="dashWeeklyAccounts">0</span></div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 24px; border-radius: 16px;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">可用动态码</div>
+                        <div style="font-size: 36px; font-weight: 700;" id="dashAvailableCodes">0</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">已使用 <span id="dashUsedCodes">0</span></div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, var(--info) 0%, #2563eb 100%); color: white; padding: 24px; border-radius: 16px;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">临时邮箱</div>
+                        <div style="font-size: 36px; font-weight: 700;" id="dashTotalEmails">0</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">活跃邮箱数量</div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%); color: white; padding: 24px; border-radius: 16px;">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">今日使用IP</div>
+                        <div style="font-size: 36px; font-weight: 700;" id="dashActiveIPs">0</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">总IP记录</div>
+                    </div>
+                </div>
+                
+                <!-- 快速操作 -->
+                <div style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 16px; color: var(--text-dark);">⚡ 快速操作</h3>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="switchTab('accounts')">
+                            👤 管理账号
+                        </button>
+                        <button class="btn btn-success" onclick="switchTab('activation'); generateCodes();">
+                            🔑 生成动态码
+                        </button>
+                        <button class="btn" style="background: var(--info); color: white;" onclick="switchTab('emails')">
+                            📬 查看邮箱
+                        </button>
+                        <button class="btn" style="background: var(--warning); color: white;" onclick="switchTab('ipmanage')">
+                            🌐 IP管理
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 账号管理 -->
+        <div id="accounts-tab" class="tab-content">
+            <div class="content-card">
+                <div class="code-generator">
+                    <h3>手动添加账号</h3>
+                    <div class="code-input-group">
+                        <input type="text" id="emailUsername" placeholder="用户名" style="flex: 1.2;">
+                        <span style="padding: 10px; color: var(--text-dark);">@nimail.cn</span>
+                        <input type="text" id="manualPassword" placeholder="密码（留空自动生成）" style="flex: 1.2;">
+                        <button class="btn" style="background: var(--bg-light); color: var(--text-dark);" onclick="generateRandomUsername()">
+                            🎲 随机
+                        </button>
+                        <button class="btn" style="background: white; color: #667eea;" onclick="addAccountManually()">
+                            ➕ 添加
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="activation-section">
+                    <div class="activation-header">
+                        <h2>注册账号列表</h2>
+                        <button class="btn btn-primary" onclick="refreshAccounts()">🔄 刷新</button>
+                    </div>
+                    <div id="accountsList" class="accounts-grid"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 邮箱验证码 -->
+        <div id="emails-tab" class="tab-content">
+            <div class="content-card">
+                <div class="activation-header">
+                    <h2>临时邮箱列表</h2>
+                    <button class="btn btn-primary" onclick="refreshEmails()">🔄 刷新</button>
+                </div>
+                <div id="emailsList" class="accounts-grid"></div>
+            </div>
+        </div>
+        
+        <!-- 动态码管理 -->
+        <div id="activation-tab" class="tab-content">
+            <div class="content-card">
+                <div class="code-generator">
+                    <h3>🔑 生成动态码</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; color: white; font-weight: 600; margin-bottom: 6px;">生成数量</label>
+                            <input type="number" id="codeCount" placeholder="默认10个" value="10" 
+                                style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.9);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; color: white; font-weight: 600; margin-bottom: 6px;">码长度</label>
+                            <input type="number" id="codeLength" placeholder="默认16位" value="16"
+                                style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.9);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; color: white; font-weight: 600; margin-bottom: 6px;">有效期（天）</label>
+                            <input type="number" id="codeExpireDays" placeholder="默认30天" value="30"
+                                style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.9);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; color: white; font-weight: 600; margin-bottom: 6px;">可使用次数</label>
+                            <input type="number" id="codeMaxUses" placeholder="默认1次" value="1"
+                                style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.9);">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="btn btn-primary btn-lg" onclick="generateCodes()">
+                            ✨ 批量生成动态码
+                        </button>
+                        <p style="font-size: 13px; color: rgba(255,255,255,0.9); margin: 0;">
+                            💡 提示：可使用次数为0表示无限次使用
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="activation-section">
+                    <div class="activation-header">
+                        <h2>已生成的动态码</h2>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span id="availableCodesCount" style="color: var(--text-light);"></span>
+                            <button class="btn btn-sm" style="background: var(--danger); color: white;" onclick="clearExpiredCodes()">
+                                🗑️ 清理过期
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="refreshCodes()">🔄 刷新</button>
+                        </div>
+                    </div>
+                    <div id="codesList" class="codes-list"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- IP管理 -->
+        <div id="ipmanage-tab" class="tab-content">
+            <div class="content-card">
+                <!-- 黑白名单管理 -->
+                <div style="margin-bottom: 32px;">
+                    <h3>🛡️ IP黑白名单</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+                        <!-- 白名单 -->
+                        <div style="background: var(--success-light); padding: 20px; border-radius: 12px; border: 1px solid var(--success);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="margin: 0; color: var(--success);">✅ 白名单（始终允许）</h4>
+                                <span id="whitelistCount" style="font-size: 12px; color: var(--success);">0个</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                <input type="text" id="whitelistIP" placeholder="输入IP地址，如：192.168.1.1" 
+                                    style="flex: 1; padding: 8px 12px; border: 1px solid var(--success); border-radius: 8px; background: white;">
+                                <button class="btn btn-success btn-sm" onclick="addToWhitelist()">➕ 添加</button>
+                            </div>
+                            <div id="whitelistIPs" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        
+                        <!-- 黑名单 -->
+                        <div style="background: var(--danger-light); padding: 20px; border-radius: 12px; border: 1px solid var(--danger);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="margin: 0; color: var(--danger);">❌ 黑名单（永久禁止）</h4>
+                                <span id="blacklistCount" style="font-size: 12px; color: var(--danger);">0个</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                <input type="text" id="blacklistIP" placeholder="输入IP地址，如：192.168.1.1" 
+                                    style="flex: 1; padding: 8px 12px; border: 1px solid var(--danger); border-radius: 8px; background: white;">
+                                <button class="btn btn-danger btn-sm" onclick="addToBlacklist()">➕ 添加</button>
+                            </div>
+                            <div id="blacklistIPs" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-light); margin: 0;">
+                        💡 白名单IP无需激活码即可使用；黑名单IP将被禁止访问
+                    </p>
+                </div>
+                
+                <!-- IP使用记录 -->
+                <div class="activation-header" style="margin-top: 32px;">
+                    <h2>📊 IP使用记录</h2>
+                    <button class="btn btn-primary" onclick="refreshIPList()">🔄 刷新</button>
+                </div>
+                <div id="ipList" class="accounts-grid"></div>
+            </div>
+        </div>
+        
+        <!-- 支持作者 -->
+        <div id="donation-tab" class="tab-content">
+            <div class="content-card">
+                <div class="donation-section">
+                    <div class="donation-card">
+                        <div class="donation-title">💝 支持作者</div>
+                        <div class="donation-subtitle">创作不易，随心打赏</div>
+                        
+                        <div class="qr-code-container">
+                            <div class="qr-code-placeholder" id="qrCodeContainer">
+                                上传你的收款二维码
+                            </div>
+                        </div>
+                        
+                        <div class="donation-note">
+                            ⚠️ 打赏后请留言获取动态码
+                        </div>
+                        
+                        <div style="margin-top: 24px;">
+                            <input type="file" id="qrCodeUpload" accept="image/*" style="display: none;" onchange="uploadQRCode(event)">
+                            <button class="btn btn-primary" onclick="document.getElementById('qrCodeUpload').click()">
+                                📸 上传收款码
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 邮件查看弹窗 -->
+    <div id="emailModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    ">
+        <div style="
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        ">
+            <!-- 弹窗标题栏 -->
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <div>
+                    <h2 id="modalEmailTitle" style="color: white; margin: 0; font-size: 18px;">📬 收件箱</h2>
+                    <p id="modalEmailSubtitle" style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0; font-size: 13px;">加载中...</p>
+                </div>
+                <button onclick="closeEmailModal()" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-size: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">×</button>
+            </div>
+            
+            <!-- 邮件列表 -->
+            <div id="modalEmailList" style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px;
+            ">加载中...</div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局状态
+        let accounts = [];
+        let activationCodes = [];
+        
+        // 分页配置
+        const ITEMS_PER_PAGE = 10;
+        let currentAccountPage = 1;
+        let currentCodePage = 1;
+        let filteredAccounts = [];
+        let filteredCodes = [];
+        let selectedAccounts = new Set();
+        let selectedCodes = new Set();
+        
+        // 标签页切换
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'accounts') refreshAccounts();
+            if (tabName === 'emails') refreshEmails();
+            if (tabName === 'activation') refreshCodes();
+            if (tabName === 'ipmanage') {
+                loadIPLists();
+                refreshIPList();
+            }
+            if (tabName === 'donation') loadQRCode();
+        }
+        
+        // 更新Dashboard数据
+        async function updateDashboard() {
+            try {
+                // 获取账号统计
+                const accountsRes = await fetch('/api/accounts');
+                const accountsData = await accountsRes.json();
+                document.getElementById('dashTotalAccounts').textContent = accountsData.total || 0;
+                
+                // 计算本周新增（简化版，实际应该在后端计算）
+                const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                const weeklyAccounts = accountsData.accounts?.filter(a => 
+                    new Date(a.createdAt).getTime() > weekAgo
+                ).length || 0;
+                document.getElementById('dashWeeklyAccounts').textContent = weeklyAccounts;
+                
+                // 获取动态码统计
+                const codesRes = await fetch('/api/activation-codes');
+                const codesData = await codesRes.json();
+                const availableCodes = codesData.codes?.filter(c => !c.used && !c.expired).length || 0;
+                const usedCodes = codesData.codes?.filter(c => c.used).length || 0;
+                document.getElementById('dashAvailableCodes').textContent = availableCodes;
+                document.getElementById('dashUsedCodes').textContent = usedCodes;
+                
+                // 获取邮箱统计
+                const emailsRes = await fetch('/api/emails');
+                const emailsData = await emailsRes.json();
+                document.getElementById('dashTotalEmails').textContent = emailsData.total || 0;
+                
+                // 获取IP统计
+                const ipsRes = await fetch('/api/ip-usage');
+                const ipsData = await ipsRes.json();
+                const todayIPs = new Set(ipsData.ipRecords?.filter(r => {
+                    const today = new Date().toDateString();
+                    return new Date(r.lastUsed).toDateString() === today;
+                }).map(r => r.ip)).size || 0;
+                document.getElementById('dashActiveIPs').textContent = todayIPs;
+            } catch (error) {
+                console.error('更新Dashboard失败:', error);
+            }
+        }
+        
+        // 生成随机用户名
+        function generateRandomUsername() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let username = '';
+            for (let i = 0; i < 8; i++) {
+                username += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('emailUsername').value = username;
+        }
+        
+        // 生成随机密码
+        function generateRandomPassword() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('manualPassword').value = password;
+        }
+        
+        // 手动添加账号
+        async function addAccountManually() {
+            const username = document.getElementById('emailUsername').value.trim();
+            let password = document.getElementById('manualPassword').value.trim();
+            const service = 'Windsurf';
+            
+            if (!username) {
+                alert('请输入用户名或点击"🎲 随机"生成');
+                return;
+            }
+            
+            // 组合完整邮箱
+            const email = username + '@nimail.cn';
+            
+            // 如果密码为空，自动生成
+            if (!password) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+                password = '';
+                for (let i = 0; i < 12; i++) {
+                    password += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/save-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password, service })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ 账号添加成功！\n\n邮箱：' + email + '\n密码：' + password);
+                    document.getElementById('emailUsername').value = '';
+                    document.getElementById('manualPassword').value = '';
+                    await refreshAccounts();
+                } else {
+                    alert('❌ 添加失败：' + data.error);
+                }
+            } catch (error) {
+                console.error('添加账号失败:', error);
+                alert('❌ 添加失败：' + error.message);
+            }
+        }
+        
+        // 加载账号
+        async function refreshAccounts() {
+            try {
+                const response = await fetch('/api/accounts');
+                const data = await response.json();
+                
+                if (data.success) {
+                    accounts = data.accounts;
+                    renderAccounts();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('加载账号失败:', error);
+            }
+        }
+        
+        // 渲染账号列表（带分页）
+        function renderAccounts() {
+            const container = document.getElementById('accountsList');
+            
+            // 使用过滤后的数据（只在有搜索词时使用过滤数据）
+            const hasSearch = document.getElementById('accountSearch')?.value?.trim();
+            const dataToShow = hasSearch ? filteredAccounts : accounts;
+            
+            if (dataToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-title">没有找到账号</div>
+                        <p>使用扩展注册账号后会显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 分页计算
+            const start = (currentAccountPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageAccounts = dataToShow.slice(start, end);
+            const totalPages = Math.ceil(dataToShow.length / ITEMS_PER_PAGE);
+            
+            container.innerHTML = `
+                <!-- 工具栏 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="checkbox" id="selectAllAccounts" onchange="toggleSelectAllAccounts()" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="selectAllAccounts" style="cursor: pointer;">全选当前页</label>
+                    <button class="btn btn-danger" onclick="batchDeleteAccounts()" id="batchDelAccountsBtn" disabled style="padding: 8px 16px;">
+                        🗑️ 删除选中 (<span id="selectedAccountCount">0</span>)
+                    </button>
+                    <input type="text" id="accountSearch" placeholder="🔍 搜索邮箱或密码..." 
+                        style="flex: 1; max-width: 300px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px;" 
+                        onkeyup="searchAccounts()">
+                    <button class="btn btn-primary" onclick="exportAccounts()" style="padding: 8px 16px;">📥 导出CSV</button>
+                </div>
+                
+                <!-- 账号列表 -->
+                ${pageAccounts.map(account => {
+                    const email = (account.email || '').replace(/'/g, "\\'");
+                    const checked = selectedAccounts.has(account.email) ? 'checked' : '';
+                    return `
+                        <div class="account-card" style="display: flex; gap: 16px; align-items: flex-start;">
+                            <input type="checkbox" class="account-checkbox" value="${email}" ${checked} 
+                                onchange="toggleAccountSelection('${email}')" 
+                                style="width: 18px; height: 18px; cursor: pointer; margin-top: 12px;">
+                            <div style="flex: 1;">
+                                <div class="account-email">
+                                    📧 ${account.email}
+                                </div>
+                                <div class="account-password">
+                                    🔒 ${account.password}
+                                </div>
+                                <div class="account-meta">
+                                    <span class="account-time">
+                                        📅 ${new Date(account.createdAt).toLocaleString('zh-CN')}
+                                    </span>
+                                    <div class="account-actions">
+                                        <button class="btn btn-copy" onclick="copyText('${email}', '邮箱')">复制邮箱</button>
+                                        <button class="btn btn-copy" onclick="copyText('${account.password}', '密码')">复制密码</button>
+                                        <button class="btn btn-primary" onclick="viewInbox('${email}')">📬 查看收件箱</button>
+                                        <button class="btn btn-danger" onclick="deleteAccount('${email}')">删除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                
+                <!-- 分页控件 -->
+                ${totalPages > 1 ? `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; padding: 20px;">
+                        <button onclick="changeAccountPage(1)" ${currentAccountPage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">首页</button>
+                        <button onclick="changeAccountPage(${currentAccountPage - 1})" ${currentAccountPage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">上一页</button>
+                        <span style="padding: 8px 16px; background: #f3f4f6; border-radius: 8px; font-weight: 600;">
+                            第 ${currentAccountPage} / ${totalPages} 页 (共 ${dataToShow.length} 条)
+                        </span>
+                        <button onclick="changeAccountPage(${currentAccountPage + 1})" ${currentAccountPage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">下一页</button>
+                        <button onclick="changeAccountPage(${totalPages})" ${currentAccountPage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">末页</button>
+                    </div>
+                ` : ''}
+            `;
+            
+            updateSelectedAccountsDisplay();
+        }
+        
+        // 加载邮箱列表
+        let emails = [];
+        
+        async function refreshEmails() {
+            try {
+                console.log('📥 [邮箱列表] 开始加载邮箱列表...');
+                const response = await fetch('/api/emails');
+                console.log('📡 [邮箱列表] 响应状态:', response.status);
+                
+                const data = await response.json();
+                console.log('📦 [邮箱列表] 响应数据:', data);
+                
+                if (data.success) {
+                    emails = data.emails || [];
+                    console.log('✅ [邮箱列表] 加载成功，共', emails.length, '个邮箱:', emails);
+                    await renderEmails();
+                } else {
+                    console.error('❌ [邮箱列表] 加载失败:', data.error);
+                }
+            } catch (error) {
+                console.error('❌ [邮箱列表] 请求失败:', error);
+            }
+        }
+        
+        // 渲染邮箱列表 - 收件箱风格
+        async function renderEmails() {
+            console.log('🎨 [邮箱列表] 开始渲染，邮箱数量:', emails.length);
+            const container = document.getElementById('emailsList');
+            
+            if (!container) {
+                console.error('❌ [邮箱列表] 找不到容器 #emailsList');
+                return;
+            }
+            
+            if (emails.length === 0) {
+                console.log('ℹ️ [邮箱列表] 没有邮箱，显示空状态');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-title">还没有临时邮箱</div>
+                        <p>使用扩展生成邮箱后会显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('📬 [邮箱列表] 准备为', emails.length, '个邮箱加载消息...');
+            
+            // 为每个邮箱加载消息
+            const emailsWithMessages = await Promise.all(emails.map(async (emailObj) => {
+                try {
+                    console.log('📧 [邮箱列表] 加载邮箱消息:', emailObj.email);
+                    const response = await fetch(`/api/get-messages/${emailObj.email}`);
+                    const data = await response.json();
+                    return {
+                        email: emailObj.email,
+                        service: emailObj.service,
+                        createdAt: emailObj.createdAt,
+                        messages: data.success ? (data.messages || []) : [],
+                        messageCount: data.success ? (data.messages || []).length : 0
+                    };
+                } catch (error) {
+                    console.error('❌ [邮箱列表] 加载消息失败:', emailObj.email, error);
+                    return { 
+                        email: emailObj.email, 
+                        service: emailObj.service,
+                        createdAt: emailObj.createdAt,
+                        messages: [], 
+                        messageCount: 0 
+                    };
+                }
+            }));
+            
+            // 收件箱风格
+            container.innerHTML = emailsWithMessages.map(item => `
+                <div style="
+                    background: white;
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    padding: 0;
+                    margin-bottom: 20px;
+                    overflow: hidden;
+                ">
+                    <!-- 邮箱标题栏 -->
+                    <div style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 16px 20px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">📬</span>
+                            <div>
+                                <div style="color: white; font-weight: 600; font-size: 15px;">
+                                    ${item.email}
+                                </div>
+                                <div style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 2px;">
+                                    共 ${item.messageCount} 封邮件
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" style="padding: 8px 16px; font-size: 13px;" onclick="deleteEmail('${item.email}')">
+                            🗑️ 删除
+                        </button>
+                    </div>
+                    
+                    <!-- 邮件列表 -->
+                    <div style="padding: 0;">
+                        ${item.messages.length > 0 ? item.messages.map((msg, msgIndex) => {
+                            // 提取验证码
+                            const body = msg.body || msg.html || msg.text || '';
+                            const codeMatch = body.match(/\b\d{4,8}\b/);
+                            const verificationCode = codeMatch ? codeMatch[0] : null;
+                            
+                            return `
+                                <div style="
+                                    padding: 20px;
+                                    border-bottom: 1px solid var(--border);
+                                    ${msgIndex === item.messages.length - 1 ? 'border-bottom: none;' : ''}
+                                    transition: background 0.2s;
+                                " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px;">
+                                                📨 ${msg.subject || '无主题'}
+                                            </div>
+                                            <div style="font-size: 13px; color: var(--text-light);">
+                                                来自: ${msg.from || '未知'}
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-light); white-space: nowrap; margin-left: 16px;">
+                                            ${new Date(msg.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                    
+                                    ${verificationCode ? `
+                                        <div style="
+                                            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                                            border: 2px solid #fbbf24;
+                                            border-radius: 10px;
+                                            padding: 12px 16px;
+                                            margin-top: 12px;
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                        ">
+                                            <div>
+                                                <div style="font-size: 12px; color: #92400e; margin-bottom: 4px; font-weight: 600;">
+                                                    验证码
+                                                </div>
+                                                <div style="font-size: 24px; font-weight: 700; color: #92400e; font-family: 'Courier New', monospace; letter-spacing: 4px;">
+                                                    ${verificationCode}
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-copy" onclick="copyText('${verificationCode}', '验证码')" style="white-space: nowrap;">
+                                                复制
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <div style="margin-top: 12px;">
+                                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;" onclick="showFullMessage('${item.email}', '${msg.id}')">
+                                            📄 查看完整邮件
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
+                            <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
+                                <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
+                                <div style="font-size: 14px;">收件箱为空</div>
+                                <div style="font-size: 12px; margin-top: 8px;">还没有收到任何邮件</div>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 查看完整邮件
+        async function showFullMessage(email, messageId) {
+            try {
+                const response = await fetch(`/api/get-message/${email}/${messageId}`);
+                const data = await response.json();
+                
+                if (data.success && data.message) {
+                    const msg = data.message;
+                    const body = msg.body || msg.html || msg.text || '无内容';
+                    
+                    // 创建模态窗口
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0,0,0,0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        padding: 20px;
+                    `;
+                    
+                    modal.innerHTML = `
+                        <div style="
+                            background: white;
+                            border-radius: 16px;
+                            max-width: 600px;
+                            width: 100%;
+                            max-height: 80vh;
+                            overflow: auto;
+                            padding: 0;
+                        ">
+                            <div style="
+                                padding: 20px;
+                                border-bottom: 1px solid var(--border);
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                            ">
+                                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
+                                    ${msg.subject || '无主题'}
+                                </div>
+                                <div style="font-size: 13px; opacity: 0.9;">
+                                    来自: ${msg.from || '未知'}
+                                </div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">
+                                    ${new Date(msg.date).toLocaleString('zh-CN')}
+                                </div>
+                            </div>
+                            <div style="padding: 20px; max-height: 400px; overflow: auto;">
+                                <div style="font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+                                    ${body.substring(0, 2000)}${body.length > 2000 ? '...' : ''}
+                                </div>
+                            </div>
+                            <div style="padding: 20px; border-top: 1px solid var(--border); text-align: right;">
+                                <button class="btn btn-primary" onclick="this.closest('div').parentElement.parentElement.remove()">
+                                    关闭
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                    modal.onclick = (e) => {
+                        if (e.target === modal) modal.remove();
+                    };
+                }
+            } catch (error) {
+                alert('❌ 加载邮件失败: ' + error.message);
+            }
+        }
+        
+        // 显示邮件详情
+        async function showMessageDetail(email, messageId) {
+            try {
+                const response = await fetch(`/api/get-message/${email}/${messageId}`);
+                const data = await response.json();
+                
+                if (data.success && data.message) {
+                    const msg = data.message;
+                    const body = msg.body || msg.html || msg.text || '无内容';
+                    
+                    // 提取验证码
+                    const codeMatch = body.match(/\b\d{4,8}\b/);
+                    const verificationCode = codeMatch ? codeMatch[0] : '未找到';
+                    
+                    alert(`📬 邮件详情\\n\\n主题: ${msg.subject || '无主题'}\\n来自: ${msg.from || '未知'}\\n时间: ${new Date(msg.date).toLocaleString('zh-CN')}\\n\\n验证码: ${verificationCode}\\n\\n内容预览:\\n${body.substring(0, 200)}...`);
+                }
+            } catch (error) {
+                alert('❌ 加载邮件失败: ' + error.message);
+            }
+        }
+        
+        // 删除邮箱
+        async function deleteEmail(email) {
+            if (!confirm(`确定要删除邮箱 ${email} 吗？`)) return;
+            
+            try {
+                const response = await fetch(`/api/emails/${encodeURIComponent(email)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    refreshEmails();
+                    alert('✅ 删除成功！');
+                }
+            } catch (error) {
+                alert('❌ 删除失败：' + error.message);
+            }
+        }
+        
+        // 生成动态码
+        async function generateCodes() {
+            const count = parseInt(document.getElementById('codeCount').value) || 10;
+            const length = parseInt(document.getElementById('codeLength').value) || 16;
+            const expireDays = parseInt(document.getElementById('codeExpireDays').value) || 30;
+            const maxUses = parseInt(document.getElementById('codeMaxUses').value) || 1;
+            
+            const newCodes = [];
+            const now = new Date();
+            const expireDate = new Date(now.getTime() + expireDays * 24 * 60 * 60 * 1000);
+            
+            for (let i = 0; i < count; i++) {
+                const code = generateRandomCode(length);
+                newCodes.push({
+                    code: code,
+                    createdAt: now.toISOString(),
+                    expiresAt: expireDate.toISOString(),
+                    maxUses: maxUses, // 0表示无限次
+                    usedCount: 0,
+                    used: false, // 兼容旧版本
+                    usedBy: [], // 使用者IP列表
+                    usedAt: null // 最后使用时间
+                });
+            }
+            
+            activationCodes.push(...newCodes);
+            
+            // 保存到服务器
+            await saveActivationCodesToServer();
+            
+            renderCodes();
+            updateStats();
+            
+            alert(`✅ 成功生成 ${count} 个动态码！\n有效期: ${expireDays}天\n可使用: ${maxUses === 0 ? '无限次' : maxUses + '次'}`);
+        }
+        
+        // 生成随机码
+        function generateRandomCode(length) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                if (i > 0 && i % 4 === 0) code += '-';
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // 渲染动态码列表（带分页）
+        function renderCodes() {
+            const container = document.getElementById('codesList');
+            const now = new Date();
+            
+            // 使用过滤后的数据（只在有搜索或筛选时使用过滤数据）
+            const hasSearch = document.getElementById('codeSearch')?.value?.trim();
+            const hasFilter = document.getElementById('codeStatusFilter')?.value !== 'all';
+            const dataToShow = (hasSearch || hasFilter) ? filteredCodes : activationCodes;
+            
+            // 统计可用码（未过期且未用完）
+            const availableCount = dataToShow.filter(c => {
+                const isExpired = c.expiresAt && new Date(c.expiresAt) < now;
+                const isUsedUp = c.maxUses > 0 && c.usedCount >= c.maxUses;
+                return !isExpired && !isUsedUp;
+            }).length;
+            
+            document.getElementById('availableCodesCount').textContent = 
+                `可用: ${availableCount} / ${dataToShow.length}`;
+            
+            if (dataToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔑</div>
+                        <div class="empty-state-title">没有找到动态码</div>
+                        <p>点击上方按钮生成动态码</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 分页计算
+            const start = (currentCodePage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageCodes = dataToShow.slice(start, end);
+            const totalPages = Math.ceil(dataToShow.length / ITEMS_PER_PAGE);
+            
+            container.innerHTML = `
+                <!-- 工具栏 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="checkbox" id="selectAllCodes" onchange="toggleSelectAllCodes()" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="selectAllCodes" style="cursor: pointer;">全选当前页</label>
+                    <button class="btn btn-danger" onclick="batchDeleteCodes()" id="batchDelCodesBtn" disabled style="padding: 8px 16px;">
+                        🗑️ 删除选中 (<span id="selectedCodeCount">0</span>)
+                    </button>
+                    <input type="text" id="codeSearch" placeholder="🔍 搜索动态码..." 
+                        style="flex: 1; max-width: 300px; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px;" 
+                        onkeyup="searchCodes()">
+                    <select id="codeStatusFilter" onchange="filterCodesByStatus()" 
+                        style="padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;">
+                        <option value="all">全部状态</option>
+                        <option value="available">可用</option>
+                        <option value="used">已用完</option>
+                        <option value="expired">已过期</option>
+                    </select>
+                </div>
+                
+                <!-- 动态码列表 -->
+                ${pageCodes.map(code => {
+                    // 兼容旧数据
+                    if (!code.expiresAt) code.expiresAt = null;
+                    if (code.maxUses === undefined) code.maxUses = 1;
+                    if (code.usedCount === undefined) code.usedCount = code.used ? 1 : 0;
+                    if (!Array.isArray(code.usedBy)) code.usedBy = code.usedBy ? [code.usedBy] : [];
+                    
+                    const isExpired = code.expiresAt && new Date(code.expiresAt) < now;
+                    const isUsedUp = code.maxUses > 0 && code.usedCount >= code.maxUses;
+                    const isAvailable = !isExpired && !isUsedUp;
+                    const checked = selectedCodes.has(code.code) ? 'checked' : '';
+                    
+                    let statusText = '可用', statusColor = '#10b981', statusBg = '#d1fae5', statusTextColor = '#065f46';
+                    if (isExpired) {
+                        statusText = '已过期';
+                        statusColor = '#9ca3af';
+                        statusBg = '#f3f4f6';
+                        statusTextColor = '#4b5563';
+                    } else if (isUsedUp) {
+                        statusText = '已用完';
+                        statusColor = '#f59e0b';
+                        statusBg = '#fef3c7';
+                        statusTextColor = '#92400e';
+                    } else if (code.usedCount > 0) {
+                        statusText = '使用中';
+                        statusColor = '#3b82f6';
+                        statusBg = '#dbeafe';
+                        statusTextColor = '#1e40af';
+                    }
+                    
+                    let daysLeftText = '永久有效';
+                    if (code.expiresAt) {
+                        const daysLeft = Math.ceil((new Date(code.expiresAt) - now) / (1000 * 60 * 60 * 24));
+                        daysLeftText = daysLeft > 0 ? daysLeft + '天后' : '已过期';
+                    }
+                    
+                    return `
+                        <div class="code-card" style="border-left: 4px solid ${statusColor}; display: flex; gap: 16px; align-items: flex-start;">
+                            <input type="checkbox" class="code-checkbox" value="${code.code}" ${checked} 
+                                onchange="toggleCodeSelection('${code.code}')" 
+                                style="width: 18px; height: 18px; cursor: pointer; margin-top: 12px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div class="code-value" style="flex: 1;">${code.code}</div>
+                                    <span class="code-status" style="background: ${statusBg}; color: ${statusTextColor}; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+                                    <div>📅 有效期: ${daysLeftText}</div>
+                                    <div>🔢 使用次数: ${code.usedCount}/${code.maxUses === 0 ? '∞' : code.maxUses}</div>
+                                    <div>📆 创建: ${new Date(code.createdAt).toLocaleDateString('zh-CN')}</div>
+                                    ${code.usedAt ? `<div>⏰ 最后使用: ${new Date(code.usedAt).toLocaleString('zh-CN', {month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})}</div>` : '<div></div>'}
+                                </div>
+                                ${code.usedBy && code.usedBy.length > 0 ? `
+                                    <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">
+                                        👥 使用者: ${code.usedBy.slice(-3).join(', ')}${code.usedBy.length > 3 ? ` +${code.usedBy.length - 3}` : ''}
+                                    </div>
+                                ` : ''}
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    ${isAvailable ? `
+                                        <button class="btn btn-copy btn-sm" onclick="copyText('${code.code}', '动态码')">📋 复制</button>
+                                    ` : ''}
+                                    <button class="btn btn-danger btn-sm" onclick="deleteCode('${code.code}')">🗑️ 删除</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                
+                <!-- 分页控件 -->
+                ${totalPages > 1 ? `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px; padding: 20px;">
+                        <button onclick="changeCodePage(1)" ${currentCodePage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">首页</button>
+                        <button onclick="changeCodePage(${currentCodePage - 1})" ${currentCodePage === 1 ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">上一页</button>
+                        <span style="padding: 8px 16px; background: #f3f4f6; border-radius: 8px; font-weight: 600;">
+                            第 ${currentCodePage} / ${totalPages} 页 (共 ${dataToShow.length} 条)
+                        </span>
+                        <button onclick="changeCodePage(${currentCodePage + 1})" ${currentCodePage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">下一页</button>
+                        <button onclick="changeCodePage(${totalPages})" ${currentCodePage === totalPages ? 'disabled' : ''} 
+                            class="btn" style="padding: 8px 16px;">末页</button>
+                    </div>
+                ` : ''}
+            `;
+            
+            updateSelectedCodesDisplay();
+        }
+        
+        // 删除单个动态码
+        async function deleteCode(code) {
+            if (!confirm(`确定要删除动态码 ${code} 吗？`)) return;
+            
+            selectedCodes.delete(code);
+            activationCodes = activationCodes.filter(c => c.code !== code);
+            await saveActivationCodesToServer();
+            renderCodes();
+            updateStats();
+        }
+        
+        // 动态码管理辅助函数
+        function changeCodePage(page) {
+            currentCodePage = page;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderCodes();
+        }
+        
+        function searchCodes() {
+            const keyword = document.getElementById('codeSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('codeStatusFilter').value;
+            
+            if (!keyword && statusFilter === 'all') {
+                filteredCodes = [];
+            } else {
+                const now = new Date();
+                filteredCodes = activationCodes.filter(code => {
+                    // 搜索过滤
+                    const matchesSearch = !keyword || code.code.toLowerCase().includes(keyword);
+                    
+                    // 状态过滤
+                    let matchesStatus = true;
+                    if (statusFilter !== 'all') {
+                        const isExpired = code.expiresAt && new Date(code.expiresAt) < now;
+                        const isUsedUp = code.maxUses > 0 && code.usedCount >= code.maxUses;
+                        const isAvailable = !isExpired && !isUsedUp;
+                        
+                        if (statusFilter === 'available') matchesStatus = isAvailable;
+                        else if (statusFilter === 'expired') matchesStatus = isExpired;
+                        else if (statusFilter === 'used') matchesStatus = isUsedUp;
+                    }
+                    
+                    return matchesSearch && matchesStatus;
+                });
+            }
+            currentCodePage = 1;
+            renderCodes();
+        }
+        
+        function filterCodesByStatus() {
+            searchCodes(); // 复用搜索逻辑
+        }
+        
+        function toggleSelectAllCodes() {
+            const checked = document.getElementById('selectAllCodes').checked;
+            document.querySelectorAll('.code-checkbox').forEach(cb => {
+                cb.checked = checked;
+                if (checked) {
+                    selectedCodes.add(cb.value);
+                } else {
+                    selectedCodes.delete(cb.value);
+                }
+            });
+            updateSelectedCodesDisplay();
+        }
+        
+        function toggleCodeSelection(code) {
+            if (selectedCodes.has(code)) {
+                selectedCodes.delete(code);
+            } else {
+                selectedCodes.add(code);
+            }
+            updateSelectedCodesDisplay();
+        }
+        
+        function updateSelectedCodesDisplay() {
+            const count = selectedCodes.size;
+            const countElem = document.getElementById('selectedCodeCount');
+            const btnElem = document.getElementById('batchDelCodesBtn');
+            if (countElem) countElem.textContent = count;
+            if (btnElem) btnElem.disabled = count === 0;
+        }
+        
+        async function batchDeleteCodes() {
+            if (selectedCodes.size === 0) return;
+            if (!confirm(`确定要删除选中的 ${selectedCodes.size} 个动态码吗？此操作不可恢复！`)) return;
+            
+            const deleteBtn = document.getElementById('batchDelCodesBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '删除中...';
+            }
+            
+            try {
+                activationCodes = activationCodes.filter(c => !selectedCodes.has(c.code));
+                await saveActivationCodesToServer();
+                
+                selectedCodes.clear();
+                renderCodes();
+                updateStats();
+                alert('✅ 批量删除成功！');
+            } catch (error) {
+                alert('❌ 批量删除失败：' + error.message);
+            }
+        }
+        
+        // 清理过期动态码
+        async function clearExpiredCodes() {
+            const now = new Date();
+            const beforeCount = activationCodes.length;
+            
+            activationCodes = activationCodes.filter(c => {
+                const isExpired = c.expiresAt && new Date(c.expiresAt) < now;
+                return !isExpired;
+            });
+            
+            const deletedCount = beforeCount - activationCodes.length;
+            
+            if (deletedCount === 0) {
+                alert('✅ 没有过期的动态码');
+                return;
+            }
+            
+            await saveActivationCodesToServer();
+            renderCodes();
+            updateStats();
+            alert(`✅ 已清理 ${deletedCount} 个过期动态码`);
+        }
+        
+        // 刷新动态码
+        async function refreshCodes() {
+            await loadActivationCodesFromServer();
+            renderCodes();
+        }
+        
+        // 保存动态码到服务器
+        async function saveActivationCodesToServer() {
+            try {
+                const response = await fetch('/api/save-activation-codes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ codes: activationCodes })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ 动态码已保存到服务器');
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('保存动态码失败:', error);
+                return false;
+            }
+        }
+        
+        // 从服务器加载动态码
+        async function loadActivationCodesFromServer() {
+            try {
+                const response = await fetch('/api/get-activation-codes');
+                const data = await response.json();
+                
+                if (data.success) {
+                    activationCodes = data.codes || [];
+                    console.log('✅ 已加载动态码:', activationCodes.length, '个');
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('加载动态码失败:', error);
+                return false;
+            }
+        }
+        
+        // 上传二维码
+        async function uploadQRCode(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // 检查文件大小（限制在1MB以内）
+            if (file.size > 1024 * 1024) {
+                alert('❌ 图片太大！请选择小于1MB的图片');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const qrCodeData = e.target.result;
+                
+                console.log('📤 上传二维码，大小:', qrCodeData.length, '字节');
+                
+                // 显示二维码
+                const img = document.createElement('img');
+                img.src = qrCodeData;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.borderRadius = '8px';
+                
+                const container = document.getElementById('qrCodeContainer');
+                container.innerHTML = '';
+                container.appendChild(img);
+                
+                // 保存到后端
+                try {
+                    console.log('💾 开始保存二维码到Upstash...');
+                    const response = await fetch('/api/save-donation-qrcode', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ qrCode: qrCodeData })
+                    });
+                    
+                    console.log('📡 服务器响应状态:', response.status);
+                    const data = await response.json();
+                    console.log('📡 服务器响应数据:', data);
+                    
+                    if (data.success) {
+                        alert('✅ 二维码已上传并保存到数据库！\n\n刷新页面后依然可以看到');
+                        // 立即验证
+                        await verifyQRCodeSaved();
+                    } else {
+                        alert('❌ 保存失败：' + (data.error || '未知错误'));
+                    }
+                } catch (error) {
+                    console.error('❌ 保存二维码失败:', error);
+                    alert('❌ 保存失败：' + error.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 验证二维码是否保存成功
+        async function verifyQRCodeSaved() {
+            try {
+                console.log('🔍 验证二维码是否保存...');
+                const response = await fetch('/api/get-donation-qrcode');
+                const data = await response.json();
+                
+                if (data.success && data.qrCode) {
+                    console.log('✅ 验证成功：二维码已保存到数据库');
+                } else {
+                    console.error('❌ 验证失败：数据库中没有找到二维码');
+                }
+            } catch (error) {
+                console.error('❌ 验证失败:', error);
+            }
+        }
+        
+        // 加载二维码
+        async function loadQRCode() {
+            try {
+                console.log('📥 开始加载二维码...');
+                const response = await fetch('/api/get-donation-qrcode');
+                console.log('📡 加载响应状态:', response.status);
+                
+                const data = await response.json();
+                console.log('📡 加载响应数据:', data.success ? '成功' : '失败', data.qrCode ? `(有数据，${data.qrCode.length}字节)` : '(无数据)');
+                
+                if (data.success && data.qrCode) {
+                    const img = document.createElement('img');
+                    img.src = data.qrCode;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '100%';
+                    img.style.borderRadius = '8px';
+                    
+                    const container = document.getElementById('qrCodeContainer');
+                    if (container) {
+                        container.innerHTML = '';
+                        container.appendChild(img);
+                        console.log('✅ 二维码加载并显示成功');
+                    } else {
+                        console.error('❌ 找不到二维码容器元素');
+                    }
+                } else {
+                    console.log('ℹ️ 数据库中没有二维码');
+                }
+            } catch (error) {
+                console.error('❌ 加载二维码失败:', error);
+            }
+        }
+        
+        // 删除账号
+        async function deleteAccount(email) {
+            if (!confirm('确定要删除这个账号吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/accounts/${encodeURIComponent(email)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    selectedAccounts.delete(email);
+                    await refreshAccounts();
+                    alert('✅ 删除成功！');
+                }
+            } catch (error) {
+                alert('❌ 删除失败：' + error.message);
+            }
+        }
+        
+        // 账号管理辅助函数
+        function changeAccountPage(page) {
+            currentAccountPage = page;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderAccounts();
+        }
+        
+        function searchAccounts() {
+            const keyword = document.getElementById('accountSearch').value.toLowerCase();
+            if (!keyword) {
+                filteredAccounts = [];
+            } else {
+                filteredAccounts = accounts.filter(account =>
+                    (account.email || '').toLowerCase().includes(keyword) ||
+                    (account.password || '').toLowerCase().includes(keyword)
+                );
+            }
+            currentAccountPage = 1;
+            renderAccounts();
+        }
+        
+        function toggleSelectAllAccounts() {
+            const checked = document.getElementById('selectAllAccounts').checked;
+            document.querySelectorAll('.account-checkbox').forEach(cb => {
+                cb.checked = checked;
+                const email = cb.value.replace(/\\'/g, "'");
+                if (checked) {
+                    selectedAccounts.add(email);
+                } else {
+                    selectedAccounts.delete(email);
+                }
+            });
+            updateSelectedAccountsDisplay();
+        }
+        
+        function toggleAccountSelection(email) {
+            const actualEmail = email.replace(/\\'/g, "'");
+            if (selectedAccounts.has(actualEmail)) {
+                selectedAccounts.delete(actualEmail);
+            } else {
+                selectedAccounts.add(actualEmail);
+            }
+            updateSelectedAccountsDisplay();
+        }
+        
+        function updateSelectedAccountsDisplay() {
+            const count = selectedAccounts.size;
+            const countElem = document.getElementById('selectedAccountCount');
+            const btnElem = document.getElementById('batchDelAccountsBtn');
+            if (countElem) countElem.textContent = count;
+            if (btnElem) btnElem.disabled = count === 0;
+        }
+        
+        async function batchDeleteAccounts() {
+            if (selectedAccounts.size === 0) return;
+            if (!confirm(`确定要删除选中的 ${selectedAccounts.size} 个账号吗？此操作不可恢复！`)) return;
+            
+            const deleteBtn = document.getElementById('batchDelAccountsBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '删除中...';
+            }
+            
+            try {
+                const promises = Array.from(selectedAccounts).map(email =>
+                    fetch(`/api/accounts/${encodeURIComponent(email)}`, { method: 'DELETE' })
+                );
+                await Promise.all(promises);
+                
+                selectedAccounts.clear();
+                await refreshAccounts();
+                alert('✅ 批量删除成功！');
+            } catch (error) {
+                alert('❌ 批量删除失败：' + error.message);
+            }
+        }
+        
+        function exportAccounts() {
+            if (accounts.length === 0) {
+                alert('⚠️ 没有账号可以导出');
+                return;
+            }
+            
+            const csv = '邮箱,密码,状态,创建时间\\n' +
+                accounts.map(a => `${a.email},${a.password},${a.status || 'active'},${new Date(a.createdAt).toLocaleString('zh-CN')}`).join('\\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `windsurf_accounts_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ 导出成功！');
+        }
+        
+        // 复制文本
+        function copyText(text, label) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`✅ ${label}已复制到剪贴板！`);
+            });
+        }
+        
+        // IP管理
+        let ipRecords = {};
+        let whitelist = [];
+        let blacklist = [];
+        
+        // 加载黑白名单
+        async function loadIPLists() {
+            try {
+                const response = await fetch('/api/get-ip-lists');
+                const data = await response.json();
+                
+                if (data.success) {
+                    whitelist = data.whitelist || [];
+                    blacklist = data.blacklist || [];
+                    renderIPLists();
+                }
+            } catch (error) {
+                console.error('加载黑白名单失败:', error);
+            }
+        }
+        
+        // 渲染黑白名单
+        function renderIPLists() {
+            // 渲染白名单
+            const whitelistContainer = document.getElementById('whitelistIPs');
+            document.getElementById('whitelistCount').textContent = whitelist.length + '个';
+            
+            if (whitelist.length === 0) {
+                whitelistContainer.innerHTML = '<div style="text-align: center; color: var(--text-light); font-size: 13px; padding: 16px;">暂无白名单IP</div>';
+            } else {
+                whitelistContainer.innerHTML = whitelist.map(ip => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 8px; margin-bottom: 6px;">
+                        <span style="font-family: monospace; font-size: 13px;">${ip}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromWhitelist('${ip}')" style="padding: 4px 8px; font-size: 11px;">移除</button>
+                    </div>
+                `).join('');
+            }
+            
+            // 渲染黑名单
+            const blacklistContainer = document.getElementById('blacklistIPs');
+            document.getElementById('blacklistCount').textContent = blacklist.length + '个';
+            
+            if (blacklist.length === 0) {
+                blacklistContainer.innerHTML = '<div style="text-align: center; color: var(--text-light); font-size: 13px; padding: 16px;">暂无黑名单IP</div>';
+            } else {
+                blacklistContainer.innerHTML = blacklist.map(ip => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 8px; margin-bottom: 6px;">
+                        <span style="font-family: monospace; font-size: 13px;">${ip}</span>
+                        <button class="btn btn-success btn-sm" onclick="removeFromBlacklist('${ip}')" style="padding: 4px 8px; font-size: 11px;">移除</button>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // 添加到白名单
+        async function addToWhitelist() {
+            const input = document.getElementById('whitelistIP');
+            const ip = input.value.trim();
+            
+            if (!ip) {
+                alert('❌ 请输入IP地址');
+                return;
+            }
+            
+            // 简单的IP格式验证
+            if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
+                alert('❌ IP地址格式不正确');
+                return;
+            }
+            
+            if (whitelist.includes(ip)) {
+                alert('⚠️ 该IP已在白名单中');
+                return;
+            }
+            
+            if (blacklist.includes(ip)) {
+                alert('⚠️ 该IP在黑名单中，请先从黑名单移除');
+                return;
+            }
+            
+            whitelist.push(ip);
+            await saveIPLists();
+            input.value = '';
+            renderIPLists();
+            alert('✅ 已添加到白名单');
+        }
+        
+        // 添加到黑名单
+        async function addToBlacklist() {
+            const input = document.getElementById('blacklistIP');
+            const ip = input.value.trim();
+            
+            if (!ip) {
+                alert('❌ 请输入IP地址');
+                return;
+            }
+            
+            // 简单的IP格式验证
+            if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
+                alert('❌ IP地址格式不正确');
+                return;
+            }
+            
+            if (blacklist.includes(ip)) {
+                alert('⚠️ 该IP已在黑名单中');
+                return;
+            }
+            
+            if (whitelist.includes(ip)) {
+                alert('⚠️ 该IP在白名单中，请先从白名单移除');
+                return;
+            }
+            
+            blacklist.push(ip);
+            await saveIPLists();
+            input.value = '';
+            renderIPLists();
+            alert('✅ 已添加到黑名单');
+        }
+        
+        // 从白名单移除
+        async function removeFromWhitelist(ip) {
+            if (!confirm(`确定要从白名单移除 ${ip} 吗？`)) return;
+            
+            whitelist = whitelist.filter(item => item !== ip);
+            await saveIPLists();
+            renderIPLists();
+        }
+        
+        // 从黑名单移除
+        async function removeFromBlacklist(ip) {
+            if (!confirm(`确定要从黑名单移除 ${ip} 吗？`)) return;
+            
+            blacklist = blacklist.filter(item => item !== ip);
+            await saveIPLists();
+            renderIPLists();
+        }
+        
+        // 保存黑白名单到服务器
+        async function saveIPLists() {
+            try {
+                const response = await fetch('/api/save-ip-lists', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ whitelist, blacklist })
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    alert('❌ 保存失败：' + data.error);
+                }
+            } catch (error) {
+                console.error('保存黑白名单失败:', error);
+                alert('❌ 保存失败：' + error.message);
+            }
+        }
+        
+        async function refreshIPList() {
+            try {
+                const response = await fetch('/api/get-ip-records');
+                const data = await response.json();
+                
+                if (data.success) {
+                    ipRecords = data.records || {};
+                    renderIPList();
+                }
+            } catch (error) {
+                console.error('加载IP记录失败:', error);
+            }
+        }
+        
+        function renderIPList() {
+            const container = document.getElementById('ipList');
+            const ips = Object.keys(ipRecords);
+            
+            if (ips.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌐</div>
+                        <div class="empty-state-title">还没有IP记录</div>
+                        <p>用户使用扩展后会显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = ips.map(ip => {
+                const record = ipRecords[ip];
+                return `
+                    <div class="account-card" style="border-left: 4px solid ${record.activated ? '#10b981' : '#f59e0b'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">
+                                    🌐 ${ip}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-light);">
+                                    使用次数: ${record.count} 次
+                                </div>
+                            </div>
+                            <span style="
+                                padding: 4px 12px;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                background: ${record.activated ? '#d1fae5' : '#fef3c7'};
+                                color: ${record.activated ? '#065f46' : '#92400e'};
+                            ">
+                                ${record.activated ? '✅ 已激活' : '⚠️ 未激活'}
+                            </span>
+                        </div>
+                        
+                        ${record.activated ? `
+                            <div style="background: var(--bg-light); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 4px;">激活码</div>
+                                <div style="font-family: 'Courier New', monospace; font-size: 13px; font-weight: 600; color: var(--primary);">
+                                    ${record.activationCode}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-top: 8px;">
+                                    激活时间: ${new Date(record.activatedAt).toLocaleString('zh-CN')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="account-meta">
+                            <div style="font-size: 11px; color: var(--text-light);">
+                                <div>首次: ${new Date(record.firstUse).toLocaleString('zh-CN')}</div>
+                                <div>最后: ${new Date(record.lastUse).toLocaleString('zh-CN')}</div>
+                            </div>
+                            <div class="account-actions">
+                                ${record.activated ? `
+                                    <button class="btn btn-danger" onclick="resetIPActivation('${ip}')">
+                                        🔄 重置激活
+                                    </button>
+                                ` : `
+                                    <button class="btn" style="background: var(--text-light);" disabled>
+                                        未激活
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function resetIPActivation(ip) {
+            if (!confirm(`确定要重置 ${ip} 的激活状态吗？\\n\\n重置后该IP需要重新输入动态码才能使用。`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/reset-ip-activation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ip })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ IP激活状态已重置！');
+                    refreshIPList();
+                } else {
+                    alert('❌ 重置失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ 重置失败: ' + error.message);
+            }
+        }
+        
+        // 查看收件箱（弹窗）
+        async function viewInbox(email) {
+            const modal = document.getElementById('emailModal');
+            const title = document.getElementById('modalEmailTitle');
+            const subtitle = document.getElementById('modalEmailSubtitle');
+            const list = document.getElementById('modalEmailList');
+            
+            // 显示弹窗
+            modal.style.display = 'flex';
+            title.textContent = '📬 ' + email;
+            subtitle.textContent = '加载中...';
+            list.innerHTML = '<div style="text-align: center; padding: 40px;">加载中...</div>';
+            
+            try {
+                const response = await fetch(`/api/get-messages/${email}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const messages = data.messages || [];
+                    subtitle.textContent = `共 ${messages.length} 封邮件`;
+                    
+                    if (messages.length === 0) {
+                        list.innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px; color: var(--text-light);">
+                                <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
+                                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">收件箱为空</div>
+                                <div style="font-size: 14px;">还没有收到任何邮件</div>
+                            </div>
+                        `;
+                    } else {
+                        list.innerHTML = messages.map((msg, index) => {
+                            const body = msg.body || msg.html || msg.text || '';
+                            const codeMatch = body.match(/\b\d{4,8}\b/);
+                            const verificationCode = codeMatch ? codeMatch[0] : null;
+                            
+                            return `
+                                <div style="
+                                    padding: 20px;
+                                    border: 1px solid var(--border);
+                                    border-radius: 12px;
+                                    margin-bottom: 16px;
+                                    background: white;
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px;">
+                                                📨 ${msg.subject || '无主题'}
+                                            </div>
+                                            <div style="font-size: 13px; color: var(--text-light);">
+                                                来自: ${msg.from || '未知'}
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-light); white-space: nowrap; margin-left: 16px;">
+                                            ${new Date(msg.date).toLocaleString('zh-CN')}
+                                        </div>
+                                    </div>
+                                    
+                                    ${verificationCode ? `
+                                        <div style="
+                                            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                                            border: 2px solid #fbbf24;
+                                            border-radius: 10px;
+                                            padding: 12px 16px;
+                                            margin: 12px 0;
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                        ">
+                                            <div>
+                                                <div style="font-size: 12px; color: #92400e; margin-bottom: 4px; font-weight: 600;">
+                                                    验证码
+                                                </div>
+                                                <div style="font-size: 24px; font-weight: 700; color: #92400e; font-family: 'Courier New', monospace; letter-spacing: 4px;">
+                                                    ${verificationCode}
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-copy" onclick="copyText('${verificationCode}', '验证码')" style="white-space: nowrap;">
+                                                复制
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                                        <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;" onclick="showFullMessageInModal('${email}', '${msg.id}')">
+                                            📄 查看完整内容
+                                        </button>
+                                        <button class="btn btn-danger" style="padding: 8px 16px; font-size: 13px;" onclick="deleteMessage('${email}', '${msg.id}')">
+                                            🗑️ 删除
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                } else {
+                    list.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">加载失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                console.error('加载邮件失败:', error);
+                list.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 关闭邮件弹窗
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+        
+        // 在弹窗中查看完整邮件
+        async function showFullMessageInModal(email, messageId) {
+            const list = document.getElementById('modalEmailList');
+            list.innerHTML = '<div style="text-align: center; padding: 40px;">加载中...</div>';
+            
+            try {
+                const response = await fetch(`/api/get-message/${email}/${messageId}`);
+                const data = await response.json();
+                
+                if (data.success && data.message) {
+                    const msg = data.message;
+                    const body = msg.body || msg.html || msg.text || '无内容';
+                    
+                    list.innerHTML = `
+                        <div style="padding: 20px; background: white; border-radius: 12px;">
+                            <button class="btn btn-secondary" onclick="viewInbox('${email}')" style="margin-bottom: 20px;">
+                                ← 返回邮件列表
+                            </button>
+                            
+                            <div style="border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
+                                <h3 style="margin: 0 0 12px 0; font-size: 18px; color: var(--text-dark);">
+                                    ${msg.subject || '无主题'}
+                                </h3>
+                                <div style="font-size: 13px; color: var(--text-light); margin-bottom: 4px;">
+                                    <strong>来自:</strong> ${msg.from || '未知'}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-light);">
+                                    <strong>时间:</strong> ${new Date(msg.date).toLocaleString('zh-CN')}
+                                </div>
+                            </div>
+                            
+                            <div style="
+                                background: var(--bg-light);
+                                padding: 20px;
+                                border-radius: 8px;
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
+                                font-size: 14px;
+                                line-height: 1.6;
+                                max-height: 400px;
+                                overflow-y: auto;
+                            ">
+                                ${body}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">加载失败</div>`;
+                }
+            } catch (error) {
+                list.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">加载失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 删除单个邮件
+        async function deleteMessage(email, messageId) {
+            if (!confirm('确定要删除这封邮件吗？')) {
+                return;
+            }
+            
+            // 注意：NiMail API可能不支持删除单个邮件
+            // 这里只是从界面上移除，实际可能需要后端API支持
+            alert('⚠️ 临时邮箱服务不支持删除单个邮件\n\n您可以删除整个邮箱来清除所有邮件');
+        }
+        
+        // 更新统计
+        function updateStats() {
+            document.getElementById('totalAccounts').textContent = accounts.length;
+            document.getElementById('totalCodes').textContent = activationCodes.filter(c => !c.used).length;
+            
+            const today = new Date().toDateString();
+            const todayCount = accounts.filter(a => 
+                new Date(a.createdAt).toDateString() === today
+            ).length;
+            document.getElementById('todayAccounts').textContent = todayCount;
+        }
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 初始化Dashboard数据
+            await updateDashboard();
+            await updateStats();
+            
+            // 加载其他数据
+            refreshAccounts();
+            await loadActivationCodesFromServer();
+            renderCodes(); // 渲染动态码列表
+            loadQRCode();
+        });
+    </script>
+</body>
+</html>

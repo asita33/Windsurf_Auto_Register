@@ -253,6 +253,8 @@
         
         .account-meta {
             display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
             justify-content: space-between;
             align-items: center;
             margin-top: 16px;
@@ -267,6 +269,7 @@
         
         .account-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
         }
         
@@ -891,7 +894,7 @@
         let activationCodes = [];
         
         // 分页配置
-        const ITEMS_PER_PAGE = 20;
+        const ITEMS_PER_PAGE = 10;
         let currentAccountPage = 1;
         let currentCodePage = 1;
         let filteredAccounts = [];
@@ -1046,9 +1049,9 @@
         function renderAccounts() {
             const container = document.getElementById('accountsList');
             
-            // 使用过滤后的数据
-            const dataToShow = filteredAccounts.length > 0 || document.getElementById('accountSearch')?.value 
-                ? filteredAccounts : accounts;
+            // 使用过滤后的数据（只在有搜索词时使用过滤数据）
+            const hasSearch = document.getElementById('accountSearch')?.value?.trim();
+            const dataToShow = hasSearch ? filteredAccounts : accounts;
             
             if (dataToShow.length === 0) {
                 container.innerHTML = `
@@ -1480,9 +1483,10 @@
             const container = document.getElementById('codesList');
             const now = new Date();
             
-            // 使用过滤后的数据
-            const dataToShow = filteredCodes.length > 0 || document.getElementById('codeSearch')?.value || document.getElementById('codeStatusFilter')?.value !== 'all'
-                ? filteredCodes : activationCodes;
+            // 使用过滤后的数据（只在有搜索或筛选时使用过滤数据）
+            const hasSearch = document.getElementById('codeSearch')?.value?.trim();
+            const hasFilter = document.getElementById('codeStatusFilter')?.value !== 'all';
+            const dataToShow = (hasSearch || hasFilter) ? filteredCodes : activationCodes;
             
             // 统计可用码（未过期且未用完）
             const availableCount = dataToShow.filter(c => {

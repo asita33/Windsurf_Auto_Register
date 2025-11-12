@@ -112,13 +112,27 @@ function rateLimiter(req, res, next) {
 function verifyApiKey(req, res, next) {
     const apiKey = req.headers['x-api-key'] || req.query.apiKey;
     
+    // 调试信息
+    console.log('🔍 API密钥验证:');
+    console.log('- 收到的密钥:', apiKey);
+    console.log('- 期望的密钥:', API_KEY);
+    console.log('- 环境变量API_KEY:', process.env.API_KEY);
+    console.log('- 请求头:', JSON.stringify(req.headers, null, 2));
+    
     if (!apiKey || apiKey !== API_KEY) {
+        console.log('❌ API密钥验证失败');
         return res.status(401).json({
             success: false,
-            error: '未授权：无效的API密钥'
+            error: '未授权：无效的API密钥',
+            debug: {
+                received: apiKey,
+                expected: API_KEY,
+                envApiKey: process.env.API_KEY
+            }
         });
     }
     
+    console.log('✅ API密钥验证成功');
     next();
 }
 

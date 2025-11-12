@@ -899,7 +899,7 @@
         async function apiFetch(url, options = {}) {
             const headers = {
                 'Content-Type': 'application/json',
-                'X-API-Key': API_KEY,
+                'x-api-key': API_KEY,  // 修复：使用小写头部名称
                 ...options.headers
             };
             

@@ -625,18 +625,24 @@
                         if (code) {
                             // 只有找到验证码才显示
                             console.log('找到验证码:', code);
+                            addLog('✅ 验证码已获取', 'success');
                             
-                            // 验证码找到后，保存账号
-                            saveAccountToBackend();
-                            
-                            // 自动打开Token页面
+                            // 先自动打开Token页面获取Token
+                            addLog('🔓 正在打开Token页面获取Token...', 'info');
                             setTimeout(() => {
                                 console.log('🔓 自动打开Token页面...');
                                 chrome.tabs.create({
                                     url: 'https://windsurf.com/editor/show-auth-token?workflow=',
                                     active: true
                                 });
-                            }, 2000);
+                            }, 1000);
+                            
+                            // 等待Token被提取并保存（content.js会自动处理）
+                            // 然后再保存账号
+                            setTimeout(() => {
+                                addLog('💾 开始保存账号到后端...', 'info');
+                                saveAccountToBackend();
+                            }, 5000);
                         }
                     }
                 }

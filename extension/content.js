@@ -644,8 +644,11 @@ function extractAndSaveToken() {
                 console.log('🔍 内容长度:', value.length);
                 console.log('🔍 格式测试:', /^[a-zA-Z0-9\-_]+$/.test(value));
                 
-                // 检查是否是Token格式（长度在20-100之间，包含字母数字、下划线、连字符）
-                if (value.length > 20 && value.length < 100 && /^[a-zA-Z0-9\-_]+$/.test(value.trim())) {
+                // 检查是否是Token格式（长度在30-100之间，包含字母数字、下划线、连字符，且必须同时包含数字和字母）
+                if (value.length > 30 && value.length < 100 && 
+                    /^[a-zA-Z0-9\-_]+$/.test(value.trim()) &&
+                    /\d/.test(value) && /[a-zA-Z]/.test(value) &&
+                    !value.includes('@')) { // 排除邮箱
                     token = value.trim();
                     console.log('🔓 从输入框找到Token:', token);
                     break;
@@ -662,10 +665,17 @@ function extractAndSaveToken() {
                     
                     // Token通常是长字符串，包含字母数字和特殊字符，包括下划线
                     const tokenMatch = text.match(/[a-zA-Z0-9\-_]{20,}/);
-                    if (tokenMatch && text.trim().length < 500) {
+                    if (tokenMatch && text.trim().length < 200) {
                         // 检查是否看起来像Token
                         const possibleToken = tokenMatch[0];
-                        if (possibleToken.length > 20 && possibleToken.length < 200) {
+                        // 更严格的Token验证：必须包含数字和字母，且不能是常见的导航文本
+                        if (possibleToken.length > 20 && possibleToken.length < 100 && 
+                            /\d/.test(possibleToken) && /[a-zA-Z]/.test(possibleToken) &&
+                            !possibleToken.toLowerCase().includes('products') &&
+                            !possibleToken.toLowerCase().includes('enterprise') &&
+                            !possibleToken.toLowerCase().includes('pricing') &&
+                            !possibleToken.toLowerCase().includes('blog') &&
+                            !possibleToken.toLowerCase().includes('company')) {
                             token = possibleToken;
                             console.log('🔓 从文本元素找到Token:', token);
                             break;
@@ -687,8 +697,11 @@ function extractAndSaveToken() {
                     const tokenMatch = text.match(/[a-zA-Z][a-zA-Z0-9\-_]{19,99}/);
                     if (tokenMatch && text.trim().length < 200) {
                         const possibleToken = tokenMatch[0];
-                        // 确保不是普通的文本
-                        if (!/\s/.test(possibleToken) && possibleToken.length > 20) {
+                        // 确保不是普通的文本，必须包含数字和字母
+                        if (!/\s/.test(possibleToken) && possibleToken.length > 20 && 
+                            /\d/.test(possibleToken) && /[a-zA-Z]/.test(possibleToken) &&
+                            !possibleToken.toLowerCase().includes('products') &&
+                            !possibleToken.toLowerCase().includes('enterprise')) {
                             token = possibleToken;
                             console.log('🔓 从Windsurf页面元素找到Token:', token);
                             break;

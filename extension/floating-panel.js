@@ -113,7 +113,7 @@
         copyEmailBtn.addEventListener('click', () => copyToClipboard(currentEmail, '邮箱'));
         copyPasswordBtn.addEventListener('click', () => copyToClipboard(currentPassword, '密码'));
         
-        // 验证动态码按钮
+        // 验证激活码按钮
         const verifyCodeBtn = document.getElementById('verify-code-btn');
         if (verifyCodeBtn) {
             verifyCodeBtn.addEventListener('click', verifyActivationCode);
@@ -397,13 +397,13 @@
         }
     }
     
-    // 验证动态码
+    // 验证激活码
     async function verifyActivationCode() {
         const input = document.getElementById('activation-code-input');
         const code = input.value.trim();
         
         if (!code) {
-            updateStatus('❌ 请输入动态码', 'error');
+            updateStatus('❌ 请输入激活码', 'error');
             return;
         }
         
@@ -446,8 +446,8 @@
                     startRegistration();
                 }, 3000);
             } else {
-                updateStatus('❌ 动态码无效', 'error');
-                addLog('验证失败: ' + (data.error || '动态码无效'), 'error');
+                updateStatus('❌ 激活码无效', 'error');
+                addLog('验证失败: ' + (data.error || '激活码无效'), 'error');
             }
         } catch (error) {
             console.error('验证失败:', error);

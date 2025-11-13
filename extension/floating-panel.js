@@ -545,32 +545,6 @@
                         
                         // 显示检查验证码按钮
                         document.getElementById('check-code-btn').style.display = 'block';
-                        
-                        // 自动开始轮询验证码（每3秒检查一次，最多检查50次 = 150秒）
-                        let autoCheckCount = 0;
-                        let autoCheckInterval = null;
-                        
-                        // 立即检查一次
-                        addLog('🔄 立即检查验证码...', 'info');
-                        const firstCheck = await checkVerificationCode();
-                        
-                        // 如果第一次就找到了，就不需要轮询了
-                        if (!firstCheck) {
-                            autoCheckInterval = setInterval(async () => {
-                                autoCheckCount++;
-                                addLog(`🔄 自动检查验证码 (${autoCheckCount}/50)...`, 'info');
-                                if (autoCheckCount > 50) {
-                                    clearInterval(autoCheckInterval);
-                                    addLog('⏰ 验证码检查超时', 'warning');
-                                    return;
-                                }
-                                const found = await checkVerificationCode();
-                                if (found) {
-                                    clearInterval(autoCheckInterval);
-                                    addLog('✅ 验证码已找到，停止轮询', 'success');
-                                }
-                            }, 3000);
-                        }
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');
@@ -594,7 +568,7 @@
     async function checkVerificationCode() {
         if (!currentEmail) {
             updateStatus('⚠️ 请先生成邮箱', 'warning');
-            return false;
+            return;
         }
 
         try {
@@ -653,16 +627,13 @@
                                 saveAccountToBackend();
                             }, 5000);
                             
-                            return true; // 找到验证码，返回true
                         }
                     }
                 }
             }
-            return false; // 没找到验证码，返回false
         } catch (error) {
             // 完全静默，只在控制台记录
             console.error('检查验证码出错:', error);
-            return false;
         }
     }
 

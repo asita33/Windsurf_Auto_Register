@@ -60,6 +60,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
     
+    if (request.action === 'openTokenPage') {
+        // 打开Token页面
+        chrome.tabs.create({
+            url: 'https://windsurf.com/editor/show-auth-token?workflow=',
+            active: true
+        });
+        return true;
+    }
+    
     return false;
 });
 

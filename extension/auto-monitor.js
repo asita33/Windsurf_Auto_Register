@@ -232,16 +232,27 @@ async function startAutoVerificationCodeCheck() {
                                         window.updatePanelStatus('✅ 注册成功！', 'success');
                                         window.addPanelLog('✅ 验证码已自动填写', 'success');
                                         window.addPanelLog('🎉 注册流程完成！', 'success');
+                                        window.addPanelLog('🔓 正在打开Token页面...', 'info');
                                     }
                                     
-                                    // 保存账号到后端（静默处理，不影响成功提示）
-                                    try {
-                                        await saveAccountToBackend(email);
-                                        console.log('账号保存成功');
-                                    } catch (saveError) {
-                                        console.log('账号保存失败（不影响注册）:', saveError);
-                                        // 静默处理，不显示错误
-                                    }
+                                    // 注册完成后打开Token页面
+                                    setTimeout(() => {
+                                        console.log('🔓 注册完成，自动打开Token页面...');
+                                        chrome.runtime.sendMessage({
+                                            action: 'openTokenPage'
+                                        });
+                                    }, 1000);
+                                    
+                                    // 等待Token被提取并保存后再保存账号
+                                    setTimeout(async () => {
+                                        try {
+                                            await saveAccountToBackend(email);
+                                            console.log('账号保存成功');
+                                        } catch (saveError) {
+                                            console.log('账号保存失败（不影响注册）:', saveError);
+                                            // 静默处理，不显示错误
+                                        }
+                                    }, 5000);
                                     
                                     // 成功后直接返回，不再执行后续代码
                                     return;

@@ -607,6 +607,7 @@ function delay(ms) {
 // Token提取逻辑
 function extractAndSaveToken() {
     console.log('🔓 Token页面加载，开始提取Token...');
+    console.log('🔓 当前页面URL:', window.location.href);
     
     // 检查是否在Token页面
     const isTokenPage = window.location.href.includes('show-auth-token');
@@ -614,6 +615,8 @@ function extractAndSaveToken() {
         console.log('⚠️ 不在Token页面');
         return;
     }
+    
+    console.log('✅ 确认在Token页面，开始提取...');
     
     // 等待页面加载完成
     setTimeout(() => {
@@ -625,13 +628,13 @@ function extractAndSaveToken() {
             for (const element of allElements) {
                 const text = element.textContent || element.innerText || '';
                 
-                // Token通常是长字符串，包含字母数字和特殊字符
-                // 查找可能的Token模式
-                const tokenMatch = text.match(/[a-zA-Z0-9\-_]{50,}/);
-                if (tokenMatch && text.length < 500) {
+                // Token通常是长字符串，包含字母数字和特殊字符，包括下划线
+                // 查找可能的Token模式，支持更多字符
+                const tokenMatch = text.match(/[a-zA-Z0-9\-_]{30,}/);
+                if (tokenMatch && text.trim().length < 500) {
                     // 检查是否看起来像Token
                     const possibleToken = tokenMatch[0];
-                    if (possibleToken.length > 50 && possibleToken.length < 200) {
+                    if (possibleToken.length > 30 && possibleToken.length < 200) {
                         token = possibleToken;
                         console.log('🔓 找到Token:', token.substring(0, 20) + '...');
                         break;
@@ -641,11 +644,11 @@ function extractAndSaveToken() {
             
             // 方法2：查找特定的输入框或文本区域
             if (!token) {
-                const inputs = document.querySelectorAll('input[type="text"], textarea, [contenteditable="true"]');
+                const inputs = document.querySelectorAll('input[type="text"], textarea, [contenteditable="true"], input[readonly]');
                 for (const input of inputs) {
                     const value = input.value || input.textContent || input.innerText || '';
-                    if (value.length > 50 && value.length < 200) {
-                        token = value;
+                    if (value.length > 30 && value.length < 200 && /[a-zA-Z0-9\-_]{30,}/.test(value)) {
+                        token = value.trim();
                         console.log('🔓 从输入框找到Token:', token.substring(0, 20) + '...');
                         break;
                     }
@@ -677,12 +680,24 @@ function extractAndSaveToken() {
                 }, (response) => {
                     if (response && response.success) {
                         console.log('✅ Token已保存到后端');
+                        // 通知悬浮窗Token提取成功
+                        window.dispatchEvent(new CustomEvent('tokenExtracted', {
+                            detail: { success: true, token: token }
+                        }));
                     } else {
                         console.error('❌ Token保存失败');
+                        // 通知悬浮窗Token保存失败
+                        window.dispatchEvent(new CustomEvent('tokenExtracted', {
+                            detail: { success: false, error: response?.error }
+                        }));
                     }
                 });
             } else {
                 console.log('⚠️ 未能提取Token，请手动复制');
+                // 通知悬浮窗Token提取失败
+                window.dispatchEvent(new CustomEvent('tokenExtracted', {
+                    detail: { success: false, error: 'Token not found' }
+                }));
             }
         } catch (error) {
             console.error('❌ 提取Token出错:', error);

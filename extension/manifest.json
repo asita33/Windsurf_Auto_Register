@@ -24,7 +24,8 @@
     {
       "matches": [
         "https://windsurf.com/account/register*",
-        "https://windsurf.com/account/*"
+        "https://windsurf.com/account/*",
+        "https://windsurf.com/editor/show-auth-token*"
       ],
       "js": ["config.private.js", "config.js", "api-helper.js", "content.js", "auto-monitor.js", "floating-panel.js"],
       "run_at": "document_end"

@@ -18,12 +18,26 @@
     let isActivated = false;
     let usageCount = 0;
 
+    // 检查当前页面类型
+    function getCurrentPageType() {
+        const url = window.location.href;
+        if (url.includes('show-auth-token')) {
+            return 'token';
+        } else if (url.includes('register') || url.includes('account')) {
+            return 'register';
+        }
+        return 'unknown';
+    }
+
     // 初始化面板
     function initPanel() {
         // 检查是否已存在
         if (document.getElementById('windsurf-floating-panel')) {
             return;
         }
+        
+        const pageType = getCurrentPageType();
+        console.log('🔧 当前页面类型:', pageType);
 
         // 加载 HTML
         fetch(chrome.runtime.getURL('floating-panel.html'))
@@ -39,8 +53,13 @@
                 console.log('✅ 悬浮窗已加载');
                 console.log('Panel:', panel);
                 
-                setupEventListeners();
+                setupEventListeners(pageType);
                 loadSavedData();
+                
+                // 如果是Token页面，显示Token获取状态
+                if (pageType === 'token') {
+                    showTokenPageStatus();
+                }
             })
             .catch(error => {
                 console.error('❌ 加载悬浮窗HTML失败:', error);
@@ -48,8 +67,8 @@
     }
 
     // 设置事件监听
-    function setupEventListeners() {
-        console.log('🔧 开始设置事件监听...');
+    function setupEventListeners(pageType = 'register') {
+        console.log('🔧 开始设置事件监听...', '页面类型:', pageType);
         
         const header = document.getElementById('panel-header');
         const minimizeBtn = document.getElementById('minimize-btn');
@@ -545,16 +564,6 @@
                         
                         // 显示检查验证码按钮
                         document.getElementById('check-code-btn').style.display = 'block';
-                        
-                        // 注册完成后直接打开Token页面
-                        addLog('🔓 正在打开Token页面...', 'info');
-                        setTimeout(() => {
-                            console.log('🔓 自动打开Token页面...');
-                            chrome.tabs.create({
-                                url: 'https://windsurf.com/editor/show-auth-token?workflow=',
-                                active: true
-                            });
-                        }, 2000);
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');
@@ -737,6 +746,34 @@
 
         updateStatus('数据已清除', 'success');
         addLog('邮箱和密码已清除', 'success');
+    }
+
+    // Token页面状态显示
+    function showTokenPageStatus() {
+        console.log('🔓 显示Token页面状态');
+        
+        // 隐藏注册相关按钮
+        const startBtn = document.getElementById('start-register-btn');
+        const checkCodeBtn = document.getElementById('check-code-btn');
+        if (startBtn) startBtn.style.display = 'none';
+        if (checkCodeBtn) checkCodeBtn.style.display = 'none';
+        
+        // 更新状态显示
+        updateStatus('🔓 Token页面已打开', 'info');
+        addLog('🔓 正在自动提取Token...', 'info');
+        addLog('💡 Token提取完成后会自动保存', 'info');
+        
+        // 监听Token提取结果
+        window.addEventListener('tokenExtracted', (event) => {
+            if (event.detail.success) {
+                updateStatus('✅ Token已成功获取并保存', 'success');
+                addLog('✅ Token已自动保存到后端', 'success');
+                addLog('🎉 注册流程全部完成！', 'success');
+            } else {
+                updateStatus('⚠️ Token提取失败', 'warning');
+                addLog('⚠️ 请手动复制Token', 'warning');
+            }
+        });
     }
 
     // 监听来自 background 的消息

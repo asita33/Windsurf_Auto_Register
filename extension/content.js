@@ -722,6 +722,11 @@ function extractAndSaveToken() {
                     action: 'saveToken',
                     token: token
                 }, (response) => {
+                    console.log('🔍 保存响应:', response);
+                    if (chrome.runtime.lastError) {
+                        console.error('❌ Chrome runtime错误:', chrome.runtime.lastError);
+                    }
+                    
                     if (response && response.success) {
                         console.log('✅ Token已保存到后端');
                         // 通知悬浮窗Token提取成功
@@ -729,10 +734,11 @@ function extractAndSaveToken() {
                             detail: { success: true, token: token }
                         }));
                     } else {
-                        console.error('❌ Token保存失败');
+                        console.error('❌ Token保存失败，响应:', response);
+                        console.error('❌ 错误详情:', response?.error);
                         // 通知悬浮窗Token保存失败
                         window.dispatchEvent(new CustomEvent('tokenExtracted', {
-                            detail: { success: false, error: response?.error }
+                            detail: { success: false, error: response?.error || 'Unknown error' }
                         }));
                     }
                 });

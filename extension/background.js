@@ -90,6 +90,8 @@ async function saveTokenToBackend(token, pageUrl) {
         const backendUrl = settings.backendUrl || 'https://windsurf-auto-register.onrender.com';
         
         console.log('🔓 准备保存Token到后端...');
+        console.log('🔓 后端URL:', backendUrl);
+        console.log('🔓 Token长度:', token.length);
         
         const response = await fetch(`${backendUrl}/api/save-token`, {
             method: 'POST',
@@ -104,7 +106,15 @@ async function saveTokenToBackend(token, pageUrl) {
             })
         });
         
+        console.log('🔍 响应状态:', response.status);
+        console.log('🔍 响应OK:', response.ok);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('🔍 响应数据:', data);
         
         if (data.success) {
             console.log('✅ Token已保存到后端');

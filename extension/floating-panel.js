@@ -56,6 +56,7 @@
         const closeBtn = document.getElementById('close-btn');
         const startBtn = document.getElementById('start-register-btn');
         const checkCodeBtn = document.getElementById('check-code-btn');
+        const handleCaptchaBtn = document.getElementById('handle-captcha-btn');
         const clearDataBtn = document.getElementById('clear-data-btn');
         const copyEmailBtn = document.getElementById('copy-email-btn');
         const copyPasswordBtn = document.getElementById('copy-password-btn');
@@ -105,6 +106,20 @@
 
         // 检查验证码
         checkCodeBtn.addEventListener('click', checkVerificationCode);
+
+        // 处理人机验证
+        if (handleCaptchaBtn) {
+            handleCaptchaBtn.addEventListener('click', async () => {
+                console.log('🤖 手动触发人机验证处理');
+                addLog('🤖 手动处理人机验证...', 'info');
+                const result = await handleCaptcha();
+                if (result) {
+                    addLog('🎉 人机验证处理完成！', 'success');
+                } else {
+                    addLog('❌ 人机验证处理失败', 'error');
+                }
+            });
+        }
 
         // 清除数据
         clearDataBtn.addEventListener('click', clearData);
@@ -542,13 +557,25 @@
                         addLog('💡 验证完成后会自动继续', 'info');
                         addLog('💡 验证码会自动获取并填写', 'info');
                         
+                        // 自动尝试处理人机验证
+                        setTimeout(async () => {
+                            const captchaHandled = await handleCaptcha();
+                            if (captchaHandled) {
+                                addLog('🎉 人机验证已自动完成！', 'success');
+                                updateStatus('✅ 人机验证已完成，等待验证码...', 'success');
+                            }
+                        }, 3000); // 3秒后尝试自动处理
+                        
                         // 延迟保存账号，等注册流程完成
+                        addLog('⏰ 将在2秒后自动保存账号到后台...', 'info');
                         setTimeout(() => {
+                            addLog('💾 开始保存账号到后台...', 'info');
                             saveAccountToBackend();
                         }, 2000);
                         
-                        // 仍然显示检查验证码按钮，以防自动化失败
+                        // 显示检查验证码和人机验证按钮，以防自动化失败
                         document.getElementById('check-code-btn').style.display = 'block';
+                        document.getElementById('handle-captcha-btn').style.display = 'block';
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');
@@ -612,6 +639,12 @@
                         if (code) {
                             // 只有找到验证码才显示
                             console.log('找到验证码:', code);
+                            
+                            // 验证码找到后，再次保存账号确保IP正确
+                            setTimeout(() => {
+                                console.log('🔄 验证码已找到，重新保存账号确保IP正确...');
+                                saveAccountToBackend();
+                            }, 1000);
                         }
                     }
                 }
@@ -619,6 +652,90 @@
         } catch (error) {
             // 完全静默，只在控制台记录
             console.error('检查验证码出错:', error);
+        }
+    }
+
+    // 自动处理人机验证
+    async function handleCaptcha() {
+        try {
+            console.log('🤖 开始自动处理人机验证...');
+            addLog('🤖 正在尝试自动通过人机验证...', 'info');
+            
+            // 等待页面加载
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // 查找常见的人机验证元素
+            const captchaSelectors = [
+                'iframe[src*="recaptcha"]',
+                'iframe[src*="hcaptcha"]', 
+                'iframe[src*="captcha"]',
+                '.captcha',
+                '.recaptcha',
+                '.hcaptcha',
+                '[data-sitekey]',
+                'input[type="checkbox"][aria-label*="robot"]',
+                'input[type="checkbox"][aria-label*="human"]'
+            ];
+            
+            for (const selector of captchaSelectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                    console.log('🎯 找到人机验证元素:', selector);
+                    addLog(`🎯 找到人机验证: ${selector}`, 'info');
+                    
+                    if (element.tagName === 'IFRAME') {
+                        // 如果是iframe，尝试点击iframe内的复选框
+                        try {
+                            const iframeDoc = element.contentDocument || element.contentWindow.document;
+                            const checkbox = iframeDoc.querySelector('input[type="checkbox"]');
+                            if (checkbox) {
+                                checkbox.click();
+                                addLog('✅ 已自动点击人机验证复选框', 'success');
+                                return true;
+                            }
+                        } catch (e) {
+                            console.log('无法访问iframe内容，尝试点击iframe本身');
+                            element.click();
+                            addLog('✅ 已点击人机验证iframe', 'success');
+                            return true;
+                        }
+                    } else {
+                        // 直接点击元素
+                        element.click();
+                        addLog('✅ 已自动点击人机验证元素', 'success');
+                        return true;
+                    }
+                }
+            }
+            
+            // 如果没找到特定的验证元素，尝试查找可能的按钮
+            const buttonSelectors = [
+                'button[type="submit"]',
+                'input[type="submit"]',
+                'button:contains("Continue")',
+                'button:contains("Verify")',
+                'button:contains("Submit")',
+                '.submit-btn',
+                '.continue-btn'
+            ];
+            
+            for (const selector of buttonSelectors) {
+                const button = document.querySelector(selector);
+                if (button && button.offsetParent !== null) { // 确保按钮可见
+                    console.log('🎯 找到可能的提交按钮:', selector);
+                    button.click();
+                    addLog('✅ 已自动点击提交按钮', 'success');
+                    return true;
+                }
+            }
+            
+            addLog('⚠️ 未找到人机验证元素，请手动完成', 'warning');
+            return false;
+            
+        } catch (error) {
+            console.error('❌ 自动处理人机验证失败:', error);
+            addLog('❌ 自动验证失败: ' + error.message, 'error');
+            return false;
         }
     }
 
@@ -710,6 +827,7 @@
         document.getElementById('email-section').style.display = 'none';
         document.getElementById('password-section').style.display = 'none';
         document.getElementById('check-code-btn').style.display = 'none';
+        document.getElementById('handle-captcha-btn').style.display = 'none';
         document.getElementById('clear-data-btn').style.display = 'none';
         document.getElementById('logs-container').innerHTML = '';
         document.getElementById('logs-container').style.display = 'none';

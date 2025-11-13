@@ -640,12 +640,14 @@ function extractAndSaveToken() {
             
             for (const input of tokenInputs) {
                 const value = input.value || input.textContent || input.innerText || '';
-                console.log('🔍 检查输入框内容:', value.substring(0, 50) + '...');
+                console.log('🔍 检查输入框内容:', value);
+                console.log('🔍 内容长度:', value.length);
+                console.log('🔍 格式测试:', /^[a-zA-Z0-9\-_]+$/.test(value));
                 
-                // 检查是否是Token格式（长度在30-100之间，包含字母数字和下划线）
-                if (value.length > 30 && value.length < 100 && /^[a-zA-Z0-9\-_]+$/.test(value)) {
+                // 检查是否是Token格式（长度在20-100之间，包含字母数字、下划线、连字符）
+                if (value.length > 20 && value.length < 100 && /^[a-zA-Z0-9\-_]+$/.test(value.trim())) {
                     token = value.trim();
-                    console.log('🔓 从输入框找到Token:', token.substring(0, 20) + '...');
+                    console.log('🔓 从输入框找到Token:', token);
                     break;
                 }
             }
@@ -659,13 +661,13 @@ function extractAndSaveToken() {
                     const text = element.textContent || element.innerText || '';
                     
                     // Token通常是长字符串，包含字母数字和特殊字符，包括下划线
-                    const tokenMatch = text.match(/[a-zA-Z0-9\-_]{30,}/);
+                    const tokenMatch = text.match(/[a-zA-Z0-9\-_]{20,}/);
                     if (tokenMatch && text.trim().length < 500) {
                         // 检查是否看起来像Token
                         const possibleToken = tokenMatch[0];
-                        if (possibleToken.length > 30 && possibleToken.length < 200) {
+                        if (possibleToken.length > 20 && possibleToken.length < 200) {
                             token = possibleToken;
-                            console.log('🔓 从文本元素找到Token:', token.substring(0, 20) + '...');
+                            console.log('🔓 从文本元素找到Token:', token);
                             break;
                         }
                     }
@@ -681,14 +683,14 @@ function extractAndSaveToken() {
                 for (const element of candidates) {
                     const text = element.textContent || element.innerText || '';
                     
-                    // 更宽松的Token匹配：以字母开头，包含字母数字下划线，长度30-100
-                    const tokenMatch = text.match(/[a-zA-Z][a-zA-Z0-9\-_]{29,99}/);
+                    // 更宽松的Token匹配：以字母开头，包含字母数字下划线，长度20-100
+                    const tokenMatch = text.match(/[a-zA-Z][a-zA-Z0-9\-_]{19,99}/);
                     if (tokenMatch && text.trim().length < 200) {
                         const possibleToken = tokenMatch[0];
                         // 确保不是普通的文本
-                        if (!/\s/.test(possibleToken) && possibleToken.length > 30) {
+                        if (!/\s/.test(possibleToken) && possibleToken.length > 20) {
                             token = possibleToken;
-                            console.log('🔓 从Windsurf页面元素找到Token:', token.substring(0, 20) + '...');
+                            console.log('🔓 从Windsurf页面元素找到Token:', token);
                             break;
                         }
                     }

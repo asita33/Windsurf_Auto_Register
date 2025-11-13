@@ -655,11 +655,12 @@
         }
     }
 
-    // 自动处理人机验证
+    // 自动处理人机验证（暂时禁用）
     async function handleCaptcha() {
         try {
-            console.log('🤖 开始自动处理人机验证...');
-            addLog('🤖 正在尝试自动通过人机验证...', 'info');
+            console.log('⏸️ 人机验证处理已禁用，请手动完成验证');
+            addLog('⏸️ 人机验证暂时禁用，请手动完成验证', 'info');
+            return false;
             
             // 等待页面加载
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -712,9 +713,6 @@
             const buttonSelectors = [
                 'button[type="submit"]',
                 'input[type="submit"]',
-                'button:contains("Continue")',
-                'button:contains("Verify")',
-                'button:contains("Submit")',
                 '.submit-btn',
                 '.continue-btn'
             ];

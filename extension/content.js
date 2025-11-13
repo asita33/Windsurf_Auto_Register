@@ -749,10 +749,25 @@ function extractAndSaveToken() {
                     } else {
                         console.error('❌ Token保存失败，响应:', response);
                         console.error('❌ 错误详情:', response?.error);
-                        // 通知悬浮窗Token保存失败
-                        window.dispatchEvent(new CustomEvent('tokenExtracted', {
-                            detail: { success: false, error: response?.error || 'Unknown error' }
-                        }));
+                        
+                        // 如果是401错误，提供特殊提示
+                        if (response?.error && response.error.includes('401')) {
+                            console.log('🔧 检测到401认证错误，可能是API密钥问题');
+                            // 通知悬浮窗显示特殊的401错误处理
+                            window.dispatchEvent(new CustomEvent('tokenExtracted', {
+                                detail: { 
+                                    success: false, 
+                                    error: 'API认证失败，请使用手动保存',
+                                    token: token,
+                                    isAuthError: true
+                                }
+                            }));
+                        } else {
+                            // 通知悬浮窗Token保存失败
+                            window.dispatchEvent(new CustomEvent('tokenExtracted', {
+                                detail: { success: false, error: response?.error || 'Unknown error' }
+                            }));
+                        }
                     }
                 });
             } else {

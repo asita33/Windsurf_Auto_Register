@@ -773,26 +773,36 @@
                 addLog('✅ Token已自动保存到后端', 'success');
                 addLog('🎉 注册流程全部完成！', 'success');
             } else {
-                updateStatus('⚠️ Token提取失败', 'warning');
-                addLog('⚠️ 自动提取失败，请手动操作：', 'warning');
-                addLog('1. 复制页面上的Token', 'info');
-                addLog('2. 点击下方"手动保存Token"按钮', 'info');
-                
-                // 显示手动保存Token按钮
-                showManualTokenButton();
+                if (event.detail.isAuthError) {
+                    updateStatus('🔑 API认证失败', 'warning');
+                    addLog('🔑 检测到API认证问题', 'warning');
+                    addLog('✅ 但Token已成功提取！', 'success');
+                    addLog('💡 请使用手动保存功能：', 'info');
+                    
+                    // 显示手动保存Token按钮，并预填Token
+                    showManualTokenButton(event.detail.token);
+                } else {
+                    updateStatus('⚠️ Token提取失败', 'warning');
+                    addLog('⚠️ 自动提取失败，请手动操作：', 'warning');
+                    addLog('1. 复制页面上的Token', 'info');
+                    addLog('2. 点击下方"手动保存Token"按钮', 'info');
+                    
+                    // 显示手动保存Token按钮
+                    showManualTokenButton();
+                }
             }
         });
     }
     
     // 显示手动保存Token按钮
-    function showManualTokenButton() {
+    function showManualTokenButton(prefilledToken = '') {
         const buttonContainer = document.createElement('div');
         buttonContainer.style.cssText = 'margin: 10px 0; text-align: center;';
         
         const manualTokenBtn = document.createElement('button');
-        manualTokenBtn.textContent = '📋 手动保存Token';
+        manualTokenBtn.textContent = prefilledToken ? '✅ 保存已提取的Token' : '📋 手动保存Token';
         manualTokenBtn.style.cssText = `
-            background: #ff6b35;
+            background: ${prefilledToken ? '#28a745' : '#ff6b35'};
             color: white;
             border: none;
             padding: 8px 16px;
@@ -802,9 +812,15 @@
         `;
         
         manualTokenBtn.onclick = () => {
-            const token = prompt('请粘贴Token:');
-            if (token && token.trim()) {
-                saveManualToken(token.trim());
+            if (prefilledToken) {
+                // 直接保存预填的Token
+                saveManualToken(prefilledToken);
+            } else {
+                // 提示用户输入Token
+                const token = prompt('请粘贴Token:');
+                if (token && token.trim()) {
+                    saveManualToken(token.trim());
+                }
             }
         };
         

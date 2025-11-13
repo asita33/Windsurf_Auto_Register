@@ -611,6 +611,15 @@
                             
                             // 验证码找到后，保存账号
                             saveAccountToBackend();
+                            
+                            // 自动打开Token页面
+                            setTimeout(() => {
+                                console.log('🔓 自动打开Token页面...');
+                                chrome.tabs.create({
+                                    url: 'https://windsurf.com/editor/show-auth-token?workflow=',
+                                    active: true
+                                });
+                            }, 2000);
                         }
                     }
                 }

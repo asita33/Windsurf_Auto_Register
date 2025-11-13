@@ -52,6 +52,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
     }
     
+    if (request.action === 'saveToken') {
+        // 保存Token到后端
+        saveTokenToBackend(request.token, sender.url).then((result) => {
+            sendResponse(result);
+        });
+        return true;
+    }
+    
     return false;
 });
 
@@ -64,3 +72,40 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         }
     }
 });
+
+// 保存Token到后端
+async function saveTokenToBackend(token, pageUrl) {
+    try {
+        // 获取后端URL
+        const settings = await chrome.storage.sync.get(['backendUrl']);
+        const backendUrl = settings.backendUrl || 'https://windsurf-auto-register.onrender.com';
+        
+        console.log('🔓 准备保存Token到后端...');
+        
+        const response = await fetch(`${backendUrl}/api/save-token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'wsr-2024-7k9m2n5p8q1r4t6v9x2z5c8f1h4j7m0p3s6v9y2b5e8h1k4n7q0t3w6z9c2f5i8l1o4r7u0x3a6d9g2j5m8p1s4v7y0b3e6h9k2n5q8t1w4z7c0f3i6l9o2r5u8x1a4d7g0j3m6p9s6v9y2b5e8h1k4n7q0t3w6z9'
+            },
+            body: JSON.stringify({
+                token: token,
+                pageUrl: pageUrl,
+                timestamp: new Date().toISOString()
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Token已保存到后端');
+            return { success: true };
+        } else {
+            console.error('❌ Token保存失败:', data.error);
+            return { success: false, error: data.error };
+        }
+    } catch (error) {
+        console.error('❌ 保存Token出错:', error);
+        return { success: false, error: error.message };
+    }
+}

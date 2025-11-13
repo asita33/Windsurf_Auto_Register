@@ -603,3 +603,105 @@ function waitForElement(selector, timeout = 5000) {
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// Token提取逻辑
+function extractAndSaveToken() {
+    console.log('🔓 Token页面加载，开始提取Token...');
+    
+    // 检查是否在Token页面
+    const isTokenPage = window.location.href.includes('show-auth-token');
+    if (!isTokenPage) {
+        console.log('⚠️ 不在Token页面');
+        return;
+    }
+    
+    // 等待页面加载完成
+    setTimeout(() => {
+        try {
+            // 方法1：查找包含Token的文本元素
+            const allElements = document.querySelectorAll('*');
+            let token = null;
+            
+            for (const element of allElements) {
+                const text = element.textContent || element.innerText || '';
+                
+                // Token通常是长字符串，包含字母数字和特殊字符
+                // 查找可能的Token模式
+                const tokenMatch = text.match(/[a-zA-Z0-9\-_]{50,}/);
+                if (tokenMatch && text.length < 500) {
+                    // 检查是否看起来像Token
+                    const possibleToken = tokenMatch[0];
+                    if (possibleToken.length > 50 && possibleToken.length < 200) {
+                        token = possibleToken;
+                        console.log('🔓 找到Token:', token.substring(0, 20) + '...');
+                        break;
+                    }
+                }
+            }
+            
+            // 方法2：查找特定的输入框或文本区域
+            if (!token) {
+                const inputs = document.querySelectorAll('input[type="text"], textarea, [contenteditable="true"]');
+                for (const input of inputs) {
+                    const value = input.value || input.textContent || input.innerText || '';
+                    if (value.length > 50 && value.length < 200) {
+                        token = value;
+                        console.log('🔓 从输入框找到Token:', token.substring(0, 20) + '...');
+                        break;
+                    }
+                }
+            }
+            
+            // 方法3：查找包含"token"关键词的元素
+            if (!token) {
+                for (const element of allElements) {
+                    const text = (element.textContent || element.innerText || '').toLowerCase();
+                    if (text.includes('token') || text.includes('auth')) {
+                        const value = element.value || element.textContent || element.innerText || '';
+                        if (value.length > 50 && value.length < 200 && !value.toLowerCase().includes('token')) {
+                            token = value;
+                            console.log('🔓 从Token相关元素找到:', token.substring(0, 20) + '...');
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (token) {
+                console.log('✅ 成功提取Token');
+                
+                // 发送Token到后端
+                chrome.runtime.sendMessage({
+                    action: 'saveToken',
+                    token: token
+                }, (response) => {
+                    if (response && response.success) {
+                        console.log('✅ Token已保存到后端');
+                    } else {
+                        console.error('❌ Token保存失败');
+                    }
+                });
+            } else {
+                console.log('⚠️ 未能提取Token，请手动复制');
+            }
+        } catch (error) {
+            console.error('❌ 提取Token出错:', error);
+        }
+    }, 2000);
+}
+
+// 页面加载时检查是否是Token页面
+if (window.location.href.includes('show-auth-token')) {
+    extractAndSaveToken();
+}
+
+// 监听URL变化
+let lastUrl = window.location.href;
+setInterval(() => {
+    if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href;
+        if (window.location.href.includes('show-auth-token')) {
+            extractAndSaveToken();
+        }
+    }
+}, 1000);

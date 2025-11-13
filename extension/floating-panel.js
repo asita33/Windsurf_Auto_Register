@@ -545,6 +545,16 @@
                         
                         // 显示检查验证码按钮
                         document.getElementById('check-code-btn').style.display = 'block';
+                        
+                        // 注册完成后直接打开Token页面
+                        addLog('🔓 正在打开Token页面...', 'info');
+                        setTimeout(() => {
+                            console.log('🔓 自动打开Token页面...');
+                            chrome.tabs.create({
+                                url: 'https://windsurf.com/editor/show-auth-token?workflow=',
+                                active: true
+                            });
+                        }, 2000);
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');

@@ -545,6 +545,17 @@
                         
                         // 显示检查验证码按钮
                         document.getElementById('check-code-btn').style.display = 'block';
+                        
+                        // 自动开始轮询验证码（每3秒检查一次，最多检查50次 = 150秒）
+                        let autoCheckCount = 0;
+                        const autoCheckInterval = setInterval(async () => {
+                            autoCheckCount++;
+                            if (autoCheckCount > 50) {
+                                clearInterval(autoCheckInterval);
+                                return;
+                            }
+                            await checkVerificationCode();
+                        }, 3000);
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');

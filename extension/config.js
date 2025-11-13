@@ -11,7 +11,7 @@ const CONFIG = typeof PRIVATE_CONFIG !== 'undefined' ? PRIVATE_CONFIG : {
     getHeaders: function() {
         return {
             'Content-Type': 'application/json',
-            'X-API-Key': this.API_KEY
+            'x-api-key': this.API_KEY
         };
     },
     

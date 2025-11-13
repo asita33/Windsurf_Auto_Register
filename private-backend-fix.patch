@@ -1,0 +1,50 @@
+# 私有后端修复补丁
+# 应用到您的私有仓库：windsurf-backend-private
+
+## 文件1: backend/public/index.html
+### 修改位置：大约第902行
+### 修改内容：
+```javascript
+// 修改前：
+'X-API-Key': API_KEY,
+
+// 修改后：
+'x-api-key': API_KEY,  // 修复：使用小写头部名称
+```
+
+## 文件2: backend/server.js (可选 - 用于调试)
+### 在 verifyApiKey 函数中添加调试信息：
+```javascript
+function verifyApiKey(req, res, next) {
+    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    
+    // 调试信息（可选）
+    console.log('🔍 API密钥验证:');
+    console.log('- 收到的密钥:', apiKey);
+    console.log('- 期望的密钥:', API_KEY);
+    
+    if (!apiKey || apiKey !== API_KEY) {
+        console.log('❌ API密钥验证失败');
+        return res.status(401).json({
+            success: false,
+            error: '未授权：无效的API密钥'
+        });
+    }
+    
+    console.log('✅ API密钥验证成功');
+    next();
+}
+```
+
+## 应用步骤：
+1. 打开私有仓库
+2. 编辑 backend/public/index.html
+3. 找到 'X-API-Key': API_KEY, 这一行
+4. 改为 'x-api-key': API_KEY,
+5. 提交并推送更改
+6. 等待Render重新部署（2-3分钟）
+
+## 验证修复：
+- 插件连接测试应该成功
+- 云端后台应该能显示数据
+- 不再出现401错误

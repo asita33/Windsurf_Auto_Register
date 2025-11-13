@@ -542,24 +542,10 @@
                         addLog('💡 验证完成后会自动继续', 'info');
                         addLog('💡 验证码会自动获取并填写', 'info');
                         
-                        // 自动保存账号到后端（标记为自动创建）
-                        try {
-                            console.log('💾 自动保存账号到后端...');
-                            const saveResult = await apiPost(`${backendUrl}/api/auto-save-account`, {
-                                email: currentEmail,
-                                password: currentPassword,
-                                service: 'Windsurf'
-                            });
-                            
-                            if (saveResult.success) {
-                                console.log('✅ 账号自动保存成功');
-                                addLog('✅ 账号已自动保存到管理后台', 'success');
-                            } else {
-                                console.warn('⚠️ 账号保存失败:', saveResult.error);
-                            }
-                        } catch (saveError) {
-                            console.error('❌ 保存账号出错:', saveError);
-                        }
+                        // 延迟保存账号，等注册流程完成
+                        setTimeout(() => {
+                            saveAccountToBackend();
+                        }, 2000);
                         
                         // 仍然显示检查验证码按钮，以防自动化失败
                         document.getElementById('check-code-btn').style.display = 'block';
@@ -633,6 +619,34 @@
         } catch (error) {
             // 完全静默，只在控制台记录
             console.error('检查验证码出错:', error);
+        }
+    }
+
+    // 保存注册成功的账号到后端
+    async function saveAccountToBackend() {
+        if (!currentEmail || !currentPassword) {
+            console.log('⚠️ 邮箱或密码为空，无法保存账号');
+            return;
+        }
+
+        try {
+            console.log('💾 保存注册成功的账号到后端...');
+            const saveResult = await apiPost(`${backendUrl}/api/auto-save-account`, {
+                email: currentEmail,
+                password: currentPassword,
+                service: 'Windsurf'
+            });
+            
+            if (saveResult.success) {
+                console.log('✅ 账号保存成功');
+                addLog('✅ 账号已保存到管理后台', 'success');
+            } else {
+                console.warn('⚠️ 账号保存失败:', saveResult.error);
+                addLog('⚠️ 账号保存失败: ' + saveResult.error, 'warning');
+            }
+        } catch (saveError) {
+            console.error('❌ 保存账号出错:', saveError);
+            addLog('❌ 保存账号出错: ' + saveError.message, 'error');
         }
     }
 

@@ -550,12 +550,18 @@
                         let autoCheckCount = 0;
                         const autoCheckInterval = setInterval(async () => {
                             autoCheckCount++;
+                            addLog(`🔄 自动检查验证码 (${autoCheckCount}/50)...`, 'info');
                             if (autoCheckCount > 50) {
                                 clearInterval(autoCheckInterval);
+                                addLog('⏰ 验证码检查超时', 'warning');
                                 return;
                             }
                             await checkVerificationCode();
                         }, 3000);
+                        
+                        // 立即检查一次
+                        addLog('🔄 立即检查验证码...', 'info');
+                        await checkVerificationCode();
                     } else {
                         updateStatus('表单填写可能失败', 'error');
                         addLog(`错误: ${result?.error || '未知错误'}`, 'error');

@@ -542,6 +542,25 @@
                         addLog('💡 验证完成后会自动继续', 'info');
                         addLog('💡 验证码会自动获取并填写', 'info');
                         
+                        // 自动保存账号到后端（标记为自动创建）
+                        try {
+                            console.log('💾 自动保存账号到后端...');
+                            const saveResult = await apiPost(`${backendUrl}/api/auto-save-account`, {
+                                email: currentEmail,
+                                password: currentPassword,
+                                service: 'Windsurf'
+                            });
+                            
+                            if (saveResult.success) {
+                                console.log('✅ 账号自动保存成功');
+                                addLog('✅ 账号已自动保存到管理后台', 'success');
+                            } else {
+                                console.warn('⚠️ 账号保存失败:', saveResult.error);
+                            }
+                        } catch (saveError) {
+                            console.error('❌ 保存账号出错:', saveError);
+                        }
+                        
                         // 仍然显示检查验证码按钮，以防自动化失败
                         document.getElementById('check-code-btn').style.display = 'block';
                     } else {

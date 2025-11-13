@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Windsurf 自动注册助手",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "自动化注册 Windsurf 账号，自动获取验证码，账号管理 with temporary email",
   "permissions": [
     "storage",

@@ -1,6 +1,16 @@
 // Content script for Windsurf registration automation
 
 console.log('Windsurf Auto Register - Content Script Loaded');
+console.log('当前页面URL:', window.location.href);
+
+// 检查页面类型并输出调试信息
+if (window.location.href.includes('show-auth-token')) {
+    console.log('🔓 检测到Token页面，准备提取Token');
+} else if (window.location.href.includes('register')) {
+    console.log('📝 检测到注册页面');
+} else {
+    console.log('❓ 未知页面类型');
+}
 
 // 暴露函数给悬浮面板使用
 window.startRegistration = async function(email, password) {

@@ -1,6 +1,9 @@
 // 悬浮面板控制脚本
 (function() {
     'use strict';
+    
+    console.log('🔧 悬浮面板脚本开始加载...');
+    console.log('🔧 当前页面URL:', window.location.href);
 
     let panel = null;
     let isDragging = false;
@@ -789,9 +792,19 @@
     });
 
     // 页面加载完成后初始化
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPanel);
-    } else {
+    console.log('🔧 页面加载状态:', document.readyState);
+    
+    function tryInitPanel() {
+        console.log('🔧 尝试初始化悬浮面板...');
         initPanel();
+    }
+    
+    if (document.readyState === 'loading') {
+        console.log('🔧 页面正在加载，等待DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', tryInitPanel);
+    } else {
+        console.log('🔧 页面已加载完成，立即初始化...');
+        // 延迟一点时间确保页面完全渲染
+        setTimeout(tryInitPanel, 100);
     }
 })();

@@ -543,13 +543,6 @@
                         addLog('💡 验证完成后会自动继续', 'info');
                         addLog('💡 验证码会自动获取并填写', 'info');
                         
-                        // 延迟保存账号，等注册流程完成
-                        addLog('⏰ 将在2秒后自动保存账号到后台...', 'info');
-                        setTimeout(() => {
-                            addLog('💾 开始保存账号到后台...', 'info');
-                            saveAccountToBackend();
-                        }, 2000);
-                        
                         // 显示检查验证码按钮
                         document.getElementById('check-code-btn').style.display = 'block';
                     } else {
@@ -616,11 +609,8 @@
                             // 只有找到验证码才显示
                             console.log('找到验证码:', code);
                             
-                            // 验证码找到后，再次保存账号确保IP正确
-                            setTimeout(() => {
-                                console.log('🔄 验证码已找到，重新保存账号确保IP正确...');
-                                saveAccountToBackend();
-                            }, 1000);
+                            // 验证码找到后，保存账号
+                            saveAccountToBackend();
                         }
                     }
                 }
@@ -635,12 +625,10 @@
     // 保存注册成功的账号到后端
     async function saveAccountToBackend() {
         if (!currentEmail || !currentPassword) {
-            console.log('⚠️ 邮箱或密码为空，无法保存账号');
             return;
         }
 
         try {
-            console.log('💾 保存注册成功的账号到后端...');
             const saveResult = await apiPost(`${backendUrl}/api/auto-save-account`, {
                 email: currentEmail,
                 password: currentPassword,
@@ -649,14 +637,11 @@
             
             if (saveResult.success) {
                 console.log('✅ 账号保存成功');
-                addLog('✅ 账号已保存到管理后台', 'success');
             } else {
                 console.warn('⚠️ 账号保存失败:', saveResult.error);
-                addLog('⚠️ 账号保存失败: ' + saveResult.error, 'warning');
             }
         } catch (saveError) {
             console.error('❌ 保存账号出错:', saveError);
-            addLog('❌ 保存账号出错: ' + saveError.message, 'error');
         }
     }
 

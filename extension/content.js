@@ -631,42 +631,74 @@ function extractAndSaveToken() {
     // 等待页面加载完成
     setTimeout(() => {
         try {
-            // 方法1：查找包含Token的文本元素
-            const allElements = document.querySelectorAll('*');
+            console.log('🔍 开始搜索Token...');
             let token = null;
             
-            for (const element of allElements) {
-                const text = element.textContent || element.innerText || '';
+            // 方法1：直接查找特定的Token输入框（最精确的方法）
+            const tokenInputs = document.querySelectorAll('input[type="text"], input[readonly], textarea');
+            console.log('🔍 找到输入框数量:', tokenInputs.length);
+            
+            for (const input of tokenInputs) {
+                const value = input.value || input.textContent || input.innerText || '';
+                console.log('🔍 检查输入框内容:', value.substring(0, 50) + '...');
                 
-                // Token通常是长字符串，包含字母数字和特殊字符，包括下划线
-                // 查找可能的Token模式，支持更多字符
-                const tokenMatch = text.match(/[a-zA-Z0-9\-_]{30,}/);
-                if (tokenMatch && text.trim().length < 500) {
-                    // 检查是否看起来像Token
-                    const possibleToken = tokenMatch[0];
-                    if (possibleToken.length > 30 && possibleToken.length < 200) {
-                        token = possibleToken;
-                        console.log('🔓 找到Token:', token.substring(0, 20) + '...');
-                        break;
+                // 检查是否是Token格式（长度在30-100之间，包含字母数字和下划线）
+                if (value.length > 30 && value.length < 100 && /^[a-zA-Z0-9\-_]+$/.test(value)) {
+                    token = value.trim();
+                    console.log('🔓 从输入框找到Token:', token.substring(0, 20) + '...');
+                    break;
+                }
+            }
+            
+            // 方法2：查找包含Token的文本元素
+            if (!token) {
+                console.log('🔍 方法1失败，尝试方法2...');
+                const allElements = document.querySelectorAll('*');
+                
+                for (const element of allElements) {
+                    const text = element.textContent || element.innerText || '';
+                    
+                    // Token通常是长字符串，包含字母数字和特殊字符，包括下划线
+                    const tokenMatch = text.match(/[a-zA-Z0-9\-_]{30,}/);
+                    if (tokenMatch && text.trim().length < 500) {
+                        // 检查是否看起来像Token
+                        const possibleToken = tokenMatch[0];
+                        if (possibleToken.length > 30 && possibleToken.length < 200) {
+                            token = possibleToken;
+                            console.log('🔓 从文本元素找到Token:', token.substring(0, 20) + '...');
+                            break;
+                        }
                     }
                 }
             }
             
-            // 方法2：查找特定的输入框或文本区域
+            // 方法3：专门针对Windsurf Token页面的查找
             if (!token) {
-                const inputs = document.querySelectorAll('input[type="text"], textarea, [contenteditable="true"], input[readonly]');
-                for (const input of inputs) {
-                    const value = input.value || input.textContent || input.innerText || '';
-                    if (value.length > 30 && value.length < 200 && /[a-zA-Z0-9\-_]{30,}/.test(value)) {
-                        token = value.trim();
-                        console.log('🔓 从输入框找到Token:', token.substring(0, 20) + '...');
-                        break;
+                console.log('🔍 方法2失败，尝试方法3（Windsurf专用）...');
+                
+                // 查找所有可能包含Token的元素
+                const candidates = document.querySelectorAll('div, span, p, code, pre');
+                for (const element of candidates) {
+                    const text = element.textContent || element.innerText || '';
+                    
+                    // 更宽松的Token匹配：以字母开头，包含字母数字下划线，长度30-100
+                    const tokenMatch = text.match(/[a-zA-Z][a-zA-Z0-9\-_]{29,99}/);
+                    if (tokenMatch && text.trim().length < 200) {
+                        const possibleToken = tokenMatch[0];
+                        // 确保不是普通的文本
+                        if (!/\s/.test(possibleToken) && possibleToken.length > 30) {
+                            token = possibleToken;
+                            console.log('🔓 从Windsurf页面元素找到Token:', token.substring(0, 20) + '...');
+                            break;
+                        }
                     }
                 }
             }
             
-            // 方法3：查找包含"token"关键词的元素
+            // 方法4：查找包含"token"关键词的元素
             if (!token) {
+                console.log('🔍 方法3失败，尝试方法4（关键词搜索）...');
+                const allElements = document.querySelectorAll('*');
                 for (const element of allElements) {
                     const text = (element.textContent || element.innerText || '').toLowerCase();
                     if (text.includes('token') || text.includes('auth')) {
